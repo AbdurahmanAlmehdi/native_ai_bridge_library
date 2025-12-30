@@ -1,0 +1,22 @@
+PODS:
+  - Flutter (1.0.0)
+  - native_ai_bridge (0.1.0):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - native_ai_bridge (from `.symlinks/plugins/native_ai_bridge/ios`)
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  native_ai_bridge:
+    :path: ".symlinks/plugins/native_ai_bridge/ios"
+
+SPEC CHECKSUMS:
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  native_ai_bridge: a5618c1e3fac8272e5593f69ae20ac6a4de6cc10
+
+PODFILE CHECKSUM: e30f02f9d1c72c47bb6344a0a748c9d268180865
+
+COCOAPODS: 1.16.2

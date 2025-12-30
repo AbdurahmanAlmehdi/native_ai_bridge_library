@@ -1,0 +1,24 @@
+name: native_ai_bridge_generator
+description: Code generator for creating Tool classes from annotated model classes
+version: 0.1.0
+homepage: https://github.com/AbdurahmanAlmehdi/native_ai_bridge
+repository: https://github.com/AbdurahmanAlmehdi/native_ai_bridge
+issue_tracker: https://github.com/AbdurahmanAlmehdi/native_ai_bridge/issues
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  native_ai_bridge:
+    path: ../native_ai_bridge
+  build: ^2.4.0
+  source_gen: ^1.5.0
+  analyzer: ^6.0.0
+  dart_style: ^2.3.0
+
+dev_dependencies:
+  build_test: ^2.0.0
+  build_runner: ^2.4.0
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
