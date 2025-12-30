@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'screens/session_demo_screen.dart';
 import 'screens/weather_tool_demo_screen.dart';
+import 'screens/generated_tools_demo_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/session': (context) => const SessionDemoScreen(),
         '/weather': (context) => const WeatherToolDemoScreen(),
+        '/generated': (context) => const GeneratedToolsDemoScreen(),
       },
     );
   }
@@ -88,6 +90,16 @@ class HomeScreen extends StatelessWidget {
                       icon: Icons.wb_sunny,
                       color: Colors.orange,
                       route: '/weather',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildDemoCard(
+                      context,
+                      title: 'Generated Tools Demo',
+                      description:
+                          'Code-generated tools using native_ai_bridge_generator',
+                      icon: Icons.auto_awesome,
+                      color: Colors.green,
+                      route: '/generated',
                     ),
                   ],
                 ),

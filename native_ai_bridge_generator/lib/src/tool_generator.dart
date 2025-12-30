@@ -161,10 +161,9 @@ class ToolGenerator extends GeneratorForAnnotation<GenerateTool> {
   }
 
   String? _mapDartTypeToToolArgumentType(DartType dartType) {
-    // Get the non-nullable type for type checking
-    final type = dartType.nullabilitySuffix == NullabilitySuffix.question
-        ? (dartType as dynamic).promotedBound ?? dartType
-        : dartType;
+    // For nullable types, we can just use the type directly
+    // The nullability doesn't affect the argument type mapping
+    final type = dartType;
 
     if (type.isDartCoreString) {
       return 'string';
@@ -253,6 +252,26 @@ class ToolGenerator extends GeneratorForAnnotation<GenerateTool> {
             buffer.write(value!.toDoubleValue());
           } else if (valueType.isDartCoreBool) {
             buffer.write(value!.toBoolValue());
+          } else if (valueType.isDartCoreList) {
+            // Handle List values (e.g., for enum constraints)
+            final listValue = value!.toListValue();
+            buffer.write('[');
+            if (listValue != null) {
+              for (var j = 0; j < listValue.length; j++) {
+                final item = listValue[j];
+                if (item.toStringValue() != null) {
+                  buffer.write('\'${item.toStringValue()}\'');
+                } else if (item.toIntValue() != null) {
+                  buffer.write(item.toIntValue());
+                } else if (item.toDoubleValue() != null) {
+                  buffer.write(item.toDoubleValue());
+                }
+                if (j < listValue.length - 1) {
+                  buffer.write(', ');
+                }
+              }
+            }
+            buffer.write(']');
           }
         }
         if (i < entries.length - 1) {
