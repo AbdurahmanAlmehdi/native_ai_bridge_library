@@ -1,6 +1,8 @@
-# Apple Foundation Flutter
+# Native AI Bridge
 
-A Flutter plugin that provides access to Apple's on-device Foundation Models framework, available on iOS 26.0 and above. This plugin allows you to integrate Apple Intelligence features directly into your Flutter applications, offering powerful, private, and efficient AI capabilities, currently on ios only but foundations model does work on macos so this will be added in a later update.
+A Flutter plugin that provides access to Apple's on-device Foundation Models framework, available on iOS 26.0 and above. This plugin allows you to integrate Apple Intelligence features directly into your Flutter applications, offering powerful, private, and efficient AI capabilities.
+
+**Note**: Currently iOS only, but since Foundation Models works on macOS, support will be added in a future update.
 
 ## Features
 
@@ -26,13 +28,23 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  apple_foundation_flutter: ^0.1.1
+  native_ai_bridge: ^0.1.0
 ```
 
 Then run:
 
 ```bash
 flutter pub get
+```
+
+### Code Generator (Optional)
+
+For automatic Tool class generation from annotated models:
+
+```yaml
+dev_dependencies:
+  build_runner: ^2.4.0
+  native_ai_bridge_generator: ^0.1.0
 ```
 
 ## Usage
@@ -44,7 +56,7 @@ You can use this plugin in two ways:
 The session class provides a more object-oriented approach with automatic session management:
 
 ```dart
-import 'package:apple_foundation_flutter/apple_foundation_flutter.dart';
+import 'package:native_ai_bridge/native_ai_bridge.dart';
 
 // Create a new session
 final session = await AppleIntelligenceSession.create(
@@ -97,7 +109,7 @@ await storySession.close();
 If you prefer to manage sessions yourself or need more direct control:
 
 ```dart
-import 'package:apple_foundation_flutter/apple_foundation_flutter.dart';
+import 'package:native_ai_bridge/native_ai_bridge.dart';
 
 final plugin = AppleFoundationFlutter();
 
@@ -206,13 +218,13 @@ try {
 - **`RUN_ERROR`**: Failed to run the prompt, often due to missing resources. This commonly occurs when:
   - The model resources are still downloading
   - The Local Sanitizer Asset is not yet available
-  - Incompatible Verions of xcode
+  - Incompatible versions of Xcode
   - The device is low on storage space
   - The model was recently installed and is still initializing
 
 ### Handling Resource Availability
 
-When you first install the app or update to a new iOS version, Apple's Foundation Models framework may need to download additional resources, if you have MacOS 26 beta 2, make sure you are using Xcode 26 beta 2 aswell. If not you might encounter `RUN_ERROR` or `MODEL_NOT_READY` errors.
+When you first install the app or update to a new iOS version, Apple's Foundation Models framework may need to download additional resources. If you have macOS 26 beta 2, make sure you are using Xcode 26 beta 2 as well. If not, you might encounter `RUN_ERROR` or `MODEL_NOT_READY` errors.
 
 ## Tool Calling
 
@@ -251,6 +263,57 @@ final session = await AppleIntelligenceSession.create(
 // Model can now call your tool
 final response = await session.ask('What\'s the weather in Boston?');
 ```
+
+### Code Generation for Tools
+
+Instead of manually creating Tool classes, you can use the `native_ai_bridge_generator` package to automatically generate them from annotated model classes.
+
+**Step 1**: Create an annotated model:
+
+```dart
+import 'package:native_ai_bridge/native_ai_bridge.dart';
+
+@GenerateTool(
+  name: 'get_weather',
+  description: 'Retrieve current weather information for a city',
+)
+class WeatherRequest {
+  final String city;
+
+  @GenerateToolArgument(
+    description: 'Temperature units: "metric" or "imperial"',
+    constraints: {'enum': ['metric', 'imperial']},
+  )
+  final String? units;
+
+  const WeatherRequest({
+    required this.city,
+    this.units = 'metric',
+  });
+}
+```
+
+**Step 2**: Run the generator:
+
+```bash
+dart run build_runner build
+```
+
+**Step 3**: Use the generated tool:
+
+```dart
+import 'models/weather_request.tool.g.dart';
+
+final weatherTool = WeatherRequestTool(); // Auto-generated!
+final session = await AppleIntelligenceSession.create(
+  'Help with weather',
+  toolHandlers: {
+    weatherTool: (call) async => fetchWeather(call.arguments['city']),
+  },
+);
+```
+
+See the [generator README](../native_ai_bridge_generator/README.md) for full documentation.
 
 ## Privacy
 
