@@ -1,7 +1,4 @@
 import 'package:native_ai_bridge/native_ai_bridge.dart';
-import 'package:native_ai_bridge/enums/styles.dart';
-import 'package:native_ai_bridge/models/tool.dart';
-import 'package:native_ai_bridge/services/tool_handler_manager.dart';
 
 class AppleIntelligenceSession {
   static final AppleFoundationFlutter _foundation = AppleFoundationFlutter();

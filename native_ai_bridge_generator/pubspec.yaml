@@ -9,8 +9,7 @@ environment:
   sdk: ^3.8.1
 
 dependencies:
-  native_ai_bridge:
-    path: ../native_ai_bridge
+  native_ai_bridge: ^0.1.0
   build: ^2.4.0
   source_gen: ^1.5.0
   analyzer: ^6.0.0

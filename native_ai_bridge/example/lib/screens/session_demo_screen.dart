@@ -170,7 +170,7 @@ class _SessionDemoScreenState extends State<SessionDemoScreen> {
       decoration: BoxDecoration(
         color: isActive
             ? (isDark
-                  ? Colors.green.shade900.withOpacity(0.3)
+                  ? Colors.green.shade900.withValues(alpha: 0.3)
                   : Colors.green.shade50)
             : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
         borderRadius: BorderRadius.circular(12),

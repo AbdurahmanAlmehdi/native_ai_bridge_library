@@ -1,1 +1,1 @@
-{"version":2,"entries":[{"package":"apple_foundation_flutter","rootUri":"../../apple_foundation_flutter/","packageUri":"lib/"},{"package":"native_ai_bridge_generator","rootUri":"../","packageUri":"lib/"}]}
+{"version":2,"entries":[{"package":"native_ai_bridge","rootUri":"../../native_ai_bridge/","packageUri":"lib/"},{"package":"native_ai_bridge_generator","rootUri":"../","packageUri":"lib/"}]}

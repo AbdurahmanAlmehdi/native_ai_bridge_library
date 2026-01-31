@@ -304,7 +304,7 @@ class _WeatherToolDemoScreenState extends State<WeatherToolDemoScreen> {
       decoration: BoxDecoration(
         color: isActive
             ? (isDark
-                  ? Colors.green.shade900.withOpacity(0.3)
+                  ? Colors.green.shade900.withValues(alpha: 0.3)
                   : Colors.green.shade50)
             : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
         borderRadius: BorderRadius.circular(12),
@@ -369,7 +369,7 @@ class _WeatherToolDemoScreenState extends State<WeatherToolDemoScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.blue.shade900.withOpacity(0.3)
+            ? Colors.blue.shade900.withValues(alpha: 0.3)
             : Colors.blue.shade50,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
@@ -605,7 +605,7 @@ class _WeatherToolDemoScreenState extends State<WeatherToolDemoScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isDark
-                  ? Colors.blue.shade900.withOpacity(0.2)
+                  ? Colors.blue.shade900.withValues(alpha: 0.2)
                   : Colors.blue.shade50,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
@@ -624,7 +624,7 @@ class _WeatherToolDemoScreenState extends State<WeatherToolDemoScreen> {
                   )
                 : ListView.separated(
                     itemCount: _toolCallLog.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 6),
+                    separatorBuilder: (_, _) => const SizedBox(height: 6),
                     itemBuilder: (context, index) {
                       final isCall = _toolCallLog[index].startsWith('🔧');
                       return Container(
@@ -632,10 +632,10 @@ class _WeatherToolDemoScreenState extends State<WeatherToolDemoScreen> {
                         decoration: BoxDecoration(
                           color: isCall
                               ? (isDark
-                                    ? Colors.blue.shade800.withOpacity(0.3)
+                                    ? Colors.blue.shade800.withValues(alpha: 0.3)
                                     : Colors.blue.shade100)
                               : (isDark
-                                    ? Colors.green.shade800.withOpacity(0.3)
+                                    ? Colors.green.shade800.withValues(alpha: 0.3)
                                     : Colors.green.shade50),
                           borderRadius: BorderRadius.circular(8),
                         ),

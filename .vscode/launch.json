@@ -8,20 +8,20 @@
        
         {
             "name": "example",
-            "cwd": "apple_foundation_flutter/example",
+            "cwd": "native_ai_bridge/example",
             "request": "launch",
             "type": "dart"
         },
         {
             "name": "example (profile mode)",
-            "cwd": "apple_foundation_flutter/example",
+            "cwd": "native_ai_bridge/example",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
             "name": "example (release mode)",
-            "cwd": "apple_foundation_flutter/example",
+            "cwd": "native_ai_bridge/example",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
