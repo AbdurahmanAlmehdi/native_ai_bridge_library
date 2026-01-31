@@ -297,7 +297,7 @@
     },
     {
       "name": "native_ai_bridge",
-      "rootUri": "../../native_ai_bridge",
+      "rootUri": "file:///Users/AbdurahmanIbrahem/.pub-cache/hosted/pub.dev/native_ai_bridge-0.1.0",
       "packageUri": "lib/",
       "languageVersion": "3.8"
     },
