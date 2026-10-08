@@ -106,7 +106,11 @@ actor SessionStore {
     }
 #endif
 
-@available(iOS 26.0, *)
+struct BridgeError: Error {
+    let code: String
+    let message: String
+}
+
 public final class NativeAiBridgePlugin: NSObject, FlutterPlugin {
 
     private var store: Any?
@@ -157,15 +161,15 @@ public final class NativeAiBridgePlugin: NSObject, FlutterPlugin {
                         code: reason.flutterCode,
                         message: reason.flutterMessage,
                         details: nil)
-                    cachedAvailability = error
+                    if reason == .deviceNotEligible {
+                        cachedAvailability = error
+                    }
                     return error
                 @unknown default:
-                    let error = FlutterError(
+                    return FlutterError(
                         code: "UNKNOWN_UNAVAILABILITY",
                         message: "The language model is unavailable for an unknown reason.",
                         details: nil)
-                    cachedAvailability = error
-                    return error
                 }
             } else {
                 let error = FlutterError(
@@ -202,9 +206,9 @@ public final class NativeAiBridgePlugin: NSObject, FlutterPlugin {
 
     @available(iOS 26.0, *)
     public func options(from args: [String: Any]) -> GenerationOptions? {
-        var opts = GenerationOptions()
-
-        return opts
+        GenerationOptions(
+            temperature: (args["temperature"] as? NSNumber)?.doubleValue,
+            maximumResponseTokens: (args["maxTokens"] as? NSNumber)?.intValue)
     }
 
     private func complete(_ result: @escaping FlutterResult, with value: Any?) {
@@ -212,18 +216,32 @@ public final class NativeAiBridgePlugin: NSObject, FlutterPlugin {
     }
 
     private func complete(_ result: @escaping FlutterResult, error: FlutterError) {
-        let flutterError: FlutterError
-        if #available(iOS 26.0, *), let genError = error as? LanguageModelSession.GenerationError {
-            flutterError = FlutterError(
-                code: "GENERATION_ERROR", message: genError.localizedDescription,
-                details: genError.errorDescription)
-        } else {
-            flutterError =
-                error
-                ?? FlutterError(
-                    code: "UNKNOWN_ERROR", message: error.description, details: nil)
+        Task { await MainActor.run { result(error) } }
+    }
+
+    func flutterError(for error: Error) -> FlutterError {
+        if let bridgeError = error as? BridgeError {
+            return FlutterError(code: bridgeError.code, message: bridgeError.message, details: nil)
         }
-        Task { await MainActor.run { result(flutterError) } }
+        #if compiler(>=6.4)
+            if #available(iOS 27.0, *) {
+                if let modelError = error as? LanguageModelError {
+                    return FlutterError(
+                        code: modelError.flutterCode, message: modelError.localizedDescription,
+                        details: nil)
+                }
+                if case .assetsUnavailable = error as? SystemLanguageModel.Error {
+                    return FlutterError(
+                        code: "MODEL_NOT_READY", message: error.localizedDescription, details: nil)
+                }
+            }
+        #endif
+        if #available(iOS 26.0, *), let generationError = error as? LanguageModelSession.GenerationError {
+            return FlutterError(
+                code: generationError.flutterCode, message: generationError.localizedDescription,
+                details: nil)
+        }
+        return FlutterError(code: "RUN_ERROR", message: error.localizedDescription, details: nil)
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -241,6 +259,9 @@ public final class NativeAiBridgePlugin: NSObject, FlutterPlugin {
             } else {
                 result(["available": true, "reason": "Available"])
             }
+            return
+        case "getCapabilities":
+            result(capabilities())
             return
         default:
             break
@@ -265,6 +286,7 @@ public final class NativeAiBridgePlugin: NSObject, FlutterPlugin {
             case "generateSuggestions": generateSuggestions(call, result)
             case "getStructuredData": getStructuredData(call, result)
             case "getListOfString": getListOfString(call, result)
+            case "generateStructured": generateStructured(call, result)
             default: result(FlutterMethodNotImplemented)
             }
         } else {
@@ -583,11 +605,11 @@ public final class NativeAiBridgePlugin: NSObject, FlutterPlugin {
                     .replacingOccurrences(of: "```", with: "")
                     .trimmed
                 if let data = cleanedContent.data(using: .utf8),
-                    let obj = try? JSONSerialization.jsonObject(with: data)
+                    (try? JSONSerialization.jsonObject(with: data)) != nil
                 {
-                    return obj
+                    return cleanedContent
                 }
-                return ["error": "Failed to parse JSON", "raw_content": content]
+                return #"{"error":"Failed to parse JSON"}"#
             }, result: result)
     }
 
@@ -631,11 +653,7 @@ public final class NativeAiBridgePlugin: NSObject, FlutterPlugin {
                 let output: Any = postProcess?(raw.content) ?? raw.content
                 complete(result, with: output)
             } catch {
-                complete(
-                    result,
-                    error: FlutterError(
-                        code: "RUN_ERROR", message: "Fail to run prompt",
-                        details: error.localizedDescription))
+                complete(result, error: flutterError(for: error))
             }
         }
     }
@@ -651,7 +669,6 @@ public final class NativeAiBridgePlugin: NSObject, FlutterPlugin {
     }
 }
 
-@available(iOS 26.0, *)
 class StreamHandler: NSObject, FlutterStreamHandler {
     private weak var plugin: NativeAiBridgePlugin?
     private var streamingTask: Task<Void, Never>?
@@ -671,6 +688,12 @@ class StreamHandler: NSObject, FlutterStreamHandler {
 
         if let error = plugin.checkAvailability() {
             return error
+        }
+
+        guard #available(iOS 26.0, *) else {
+            return FlutterError(
+                code: "UNSUPPORTED_OS_VERSION",
+                message: "Apple Foundation Models require iOS 26.0 or later.", details: nil)
         }
 
         guard let args = arguments as? [String: Any],
@@ -706,7 +729,8 @@ class StreamHandler: NSObject, FlutterStreamHandler {
 
                 for try await chunk in stream {
                     guard !Task.isCancelled else { break }
-                    await MainActor.run { events(chunk) }
+                    let text = chunk.content
+                    await MainActor.run { events(text) }
                 }
             } catch {
                 if !(error is CancellationError) {

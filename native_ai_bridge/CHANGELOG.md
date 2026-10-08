@@ -1,3 +1,19 @@
+## 0.2.0
+
+### Features
+* `generateStructured` returns JSON that is guaranteed to match a JSON-Schema-style map, using guided generation (`DynamicGenerationSchema`).
+* `generateStructured` accepts `images` for the iOS 27 vision-capable model.
+* `getCapabilities` reports availability, vision support and whether the current locale is supported.
+* Errors keep their native code: `UNSUPPORTED_LANGUAGE`, `CONTEXT_WINDOW_EXCEEDED`, `GUARDRAIL_VIOLATION`, `RATE_LIMITED`, `VISION_UNSUPPORTED`, `INVALID_SCHEMA`.
+* `AppleFoundationException` and `NativeAiCapabilities` are exported.
+
+### Fixes
+* FoundationModels is weak-linked, so apps with a deployment target below iOS 26 no longer fail to launch on older iOS versions.
+* Availability is no longer cached while the model is downloading or Apple Intelligence is off.
+* `getStructuredData` returned a map where Dart expected a JSON string.
+* `temperature` and `maxTokens` are passed to the model.
+* Streaming sends text chunks instead of snapshot objects.
+
 ## 0.1.0
 
 ### BREAKING CHANGES

@@ -18,8 +18,8 @@ A Flutter plugin that provides access to Apple's on-device Foundation Models fra
 
 ## Requirements
 
-- **Platform**: iOS 26.0+
-- **IDE**: Xcode 26.0+
+- **Platform**: the plugin installs on iOS 14.0+ and the model runs on iOS 26.0+ (image input needs iOS 27.0+). FoundationModels is weak-linked, so apps that support older iOS versions still launch there.
+- **IDE**: Xcode 26.0+ (Xcode 27 for image input)
 - **Flutter**: 3.0+
 
 ## Installation
@@ -206,6 +206,35 @@ try {
 }
 ```
 
+### Structured output with a schema
+
+`generateStructured` uses Apple's guided generation, so the result always matches the schema. Properties are generated in the order you write them.
+
+```dart
+final ai = AppleFoundationFlutter();
+final capabilities = await ai.getCapabilities();
+if (!capabilities.available) return;
+
+final filters = await ai.generateStructured(
+  instructions: 'Turn shopping queries into search filters.',
+  prompt: 'samsung phones under 1500, cheapest first',
+  schema: {
+    'type': 'object',
+    'properties': {
+      'searchTerm': {'type': 'string'},
+      'brand': {'type': 'string', 'description': 'Brand name if one is named'},
+      'maxPrice': {'type': 'number'},
+      'sort': {'enum': ['none', 'priceAscending', 'priceDescending']},
+    },
+    'required': ['searchTerm', 'sort'],
+  },
+);
+```
+
+Supported schema keys: `type` (`object`, `array`, `string`, `number`, `integer`, `boolean`), `properties`, `required`, `items`, `minItems`, `maxItems`, `enum` (strings) and `description`.
+
+Pass `images` (encoded JPEG/PNG/HEIC bytes) to reason about photos. This needs iOS 27 and `capabilities.vision`; otherwise the call throws `VISION_UNSUPPORTED`.
+
 ### Common Error Codes
 
 - **`UNSUPPORTED_OS_VERSION`**: The iOS version is below 26.0.
@@ -214,6 +243,12 @@ try {
 - **`MODEL_NOT_READY`**: The language model is still downloading or is otherwise not ready.
 - **`TIMEOUT_ERROR`**: The request to the native side timed out.
 - **`GENERATION_ERROR`**: An error occurred within the native model during generation.
+- **`UNSUPPORTED_LANGUAGE`**: The prompt or locale is in a language the model does not support.
+- **`CONTEXT_WINDOW_EXCEEDED`**: Instructions, prompt and output do not fit the context window.
+- **`GUARDRAIL_VIOLATION`**: The safety guardrails blocked the prompt or the response.
+- **`RATE_LIMITED`**: Too many requests, usually while the app is in the background.
+- **`VISION_UNSUPPORTED`** / **`INVALID_IMAGE`**: Image input is unavailable or the bytes could not be decoded.
+- **`INVALID_SCHEMA`**: The schema passed to `generateStructured` uses an unsupported shape.
 - **`INVALID_ARGUMENTS`**: One of the arguments passed to the method was invalid (e.g., empty prompt).
 - **`RUN_ERROR`**: Failed to run the prompt, often due to missing resources. This commonly occurs when:
   - The model resources are still downloading
