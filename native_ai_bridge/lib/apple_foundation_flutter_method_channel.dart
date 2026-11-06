@@ -4,9 +4,11 @@ import 'dart:developer' as developer;
 
 import 'package:native_ai_bridge/enums/styles.dart';
 import 'package:native_ai_bridge/exception/apple_foundation_flutter_exception.dart';
+import 'package:native_ai_bridge/models/native_ai_capabilities.dart';
 import 'package:native_ai_bridge/models/tool.dart';
 import 'package:native_ai_bridge/models/tool_call.dart';
 import 'package:native_ai_bridge/services/tool_handler_manager.dart';
+import 'package:native_ai_bridge/utils/generation_schema.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -618,6 +620,94 @@ class MethodChannelAppleFoundationFlutter
   }
 
   /// Helper method to invoke method channel calls with timeout and retry logic
+  @override
+  Future<NativeAiCapabilities> getCapabilities() async {
+    try {
+      final map = await methodChannel.invokeMapMethod<String, dynamic>(
+        'getCapabilities',
+      );
+      if (map == null) return NativeAiCapabilities.unsupportedPlatform;
+      return NativeAiCapabilities.fromMap(map);
+    } on MissingPluginException {
+      return NativeAiCapabilities.unsupportedPlatform;
+    } on PlatformException catch (e) {
+      return NativeAiCapabilities(
+        available: false,
+        code: e.code,
+        reason: e.message,
+      );
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> generateStructured({
+    required String prompt,
+    required Map<String, dynamic> schema,
+    String? instructions,
+    List<Uint8List> images = const [],
+    String schemaName = 'Response',
+    double? temperature,
+    int? maxTokens,
+    Duration? timeout,
+  }) async {
+    if (prompt.trim().isEmpty) {
+      throw AppleFoundationException(
+        'Prompt cannot be empty',
+        code: 'INVALID_PROMPT',
+      );
+    }
+
+    final String? response;
+    try {
+      response = await methodChannel
+          .invokeMethod<String>('generateStructured', {
+            'prompt': prompt,
+            'schema': withPropertyOrder(schema),
+            'schemaName': schemaName,
+            if (instructions != null) 'instructions': instructions,
+            if (images.isNotEmpty) 'images': images,
+            if (temperature != null) 'temperature': temperature,
+            if (maxTokens != null) 'maxTokens': maxTokens,
+          })
+          .timeout(timeout ?? _defaultTimeout);
+    } on TimeoutException {
+      throw AppleFoundationException(
+        'generateStructured timed out',
+        code: 'TIMEOUT_ERROR',
+      );
+    } on MissingPluginException {
+      throw AppleFoundationException(
+        'Apple Foundation Models are only available on iOS.',
+        code: 'UNSUPPORTED_PLATFORM',
+      );
+    } on PlatformException catch (e) {
+      throw AppleFoundationException(
+        e.message ?? 'generateStructured failed',
+        code: e.code,
+        details: e.details,
+      );
+    }
+
+    if (response == null || response.isEmpty) {
+      throw AppleFoundationException(
+        'Received empty response from native layer',
+        code: 'EMPTY_RESPONSE',
+      );
+    }
+
+    try {
+      final decoded = json.decode(response);
+      if (decoded is Map) return Map<String, dynamic>.from(decoded);
+    } on FormatException catch (e) {
+      _logError('generateStructured - JSON decode', e);
+    }
+    throw AppleFoundationException(
+      'Native layer returned invalid JSON',
+      code: 'INVALID_RESPONSE',
+      details: response,
+    );
+  }
+
   Future<T?> _invokeMethodWithTimeout<T>(
     String method, [
     Map<String, dynamic>? arguments,

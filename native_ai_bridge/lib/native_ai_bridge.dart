@@ -2,6 +2,8 @@ export 'annotations/tool_annotations.dart';
 export 'apple_foundation_flutter_impl.dart';
 export 'enums/styles.dart';
 export 'enums/tool_argument_type.dart';
+export 'exception/apple_foundation_flutter_exception.dart';
+export 'models/native_ai_capabilities.dart';
 export 'models/tool.dart';
 export 'models/tool_argument.dart';
 export 'models/tool_call.dart';

@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:native_ai_bridge/enums/styles.dart';
+import 'package:native_ai_bridge/models/native_ai_capabilities.dart';
 import 'package:native_ai_bridge/models/tool.dart';
 import 'package:native_ai_bridge/services/tool_handler_manager.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -114,5 +117,22 @@ abstract class AppleFoundationFlutterPlatform extends PlatformInterface {
     throw UnimplementedError(
       'getStructuredDataStream() has not been implemented.',
     );
+  }
+
+  Future<NativeAiCapabilities> getCapabilities() {
+    throw UnimplementedError('getCapabilities() has not been implemented.');
+  }
+
+  Future<Map<String, dynamic>> generateStructured({
+    required String prompt,
+    required Map<String, dynamic> schema,
+    String? instructions,
+    List<Uint8List> images = const [],
+    String schemaName = 'Response',
+    double? temperature,
+    int? maxTokens,
+    Duration? timeout,
+  }) {
+    throw UnimplementedError('generateStructured() has not been implemented.');
   }
 }

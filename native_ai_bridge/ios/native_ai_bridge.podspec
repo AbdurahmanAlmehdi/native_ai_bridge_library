@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'native_ai_bridge'
-  s.version          = '0.1.0'
+  s.version          = '0.2.0'
   s.summary          = 'A Flutter plugin for interacting with Apple\'s Foundation Models framework.'
   s.description      = <<-DESC
 A Flutter plugin for interacting with Apple's Foundation Models framework, providing on-device AI capabilities.
@@ -16,7 +16,7 @@ A Flutter plugin for interacting with Apple's Foundation Models framework, provi
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
   s.platform = :ios, '14.0'
-  s.frameworks = 'FoundationModels'
+  s.weak_frameworks = 'FoundationModels'
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }

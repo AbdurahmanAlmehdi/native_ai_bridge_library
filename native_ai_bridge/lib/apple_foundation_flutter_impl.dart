@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:native_ai_bridge/enums/styles.dart';
+import 'package:native_ai_bridge/models/native_ai_capabilities.dart';
 import 'package:native_ai_bridge/models/tool.dart';
 import 'package:native_ai_bridge/services/tool_handler_manager.dart';
 
@@ -139,6 +142,42 @@ class AppleFoundationFlutter {
     return AppleFoundationFlutterPlatform.instance.getStructuredDataStream(
       prompt,
       sessionId: sessionId,
+    );
+  }
+
+  Future<NativeAiCapabilities> getCapabilities() {
+    return AppleFoundationFlutterPlatform.instance.getCapabilities();
+  }
+
+  /// Generates a JSON object that is guaranteed to match [schema].
+  ///
+  /// [schema] is a JSON-Schema subset: `object` (with `properties` and
+  /// `required`), `array` (with `items`, `minItems`, `maxItems`), `string`,
+  /// `number`, `integer`, `boolean`, `enum` of strings, and `description` on
+  /// any node. Properties are generated in the order they are written.
+  ///
+  /// [images] are encoded image bytes (JPEG, PNG, HEIC). They need iOS 27 and
+  /// [NativeAiCapabilities.vision]; otherwise the call throws
+  /// `VISION_UNSUPPORTED`.
+  Future<Map<String, dynamic>> generateStructured({
+    required String prompt,
+    required Map<String, dynamic> schema,
+    String? instructions,
+    List<Uint8List> images = const [],
+    String schemaName = 'Response',
+    double? temperature,
+    int? maxTokens,
+    Duration? timeout,
+  }) {
+    return AppleFoundationFlutterPlatform.instance.generateStructured(
+      prompt: prompt,
+      schema: schema,
+      instructions: instructions,
+      images: images,
+      schemaName: schemaName,
+      temperature: temperature,
+      maxTokens: maxTokens,
+      timeout: timeout,
     );
   }
 }
