@@ -1,3 +1,7 @@
+## 0.2.1
+
+* Fix the homepage, repository and issue tracker links. They pointed at a repository that does not exist; the package lives in `native_ai_bridge_library`. No code changes.
+
 ## 0.2.0
 
 ### Features

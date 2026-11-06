@@ -4,12 +4,12 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'native_ai_bridge'
-  s.version          = '0.2.0'
+  s.version          = '0.2.1'
   s.summary          = 'A Flutter plugin for interacting with Apple\'s Foundation Models framework.'
   s.description      = <<-DESC
 A Flutter plugin for interacting with Apple's Foundation Models framework, providing on-device AI capabilities.
                        DESC
-  s.homepage         = 'https://github.com/AbdurahmanAlmehdi/native_ai_bridge'
+  s.homepage         = 'https://github.com/AbdurahmanAlmehdi/native_ai_bridge_library'
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Abdurahman Almehdi' => 'noreply@example.com' }
   s.source           = { :path => '.' }
