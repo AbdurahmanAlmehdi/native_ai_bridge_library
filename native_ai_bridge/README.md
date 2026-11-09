@@ -28,7 +28,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  native_ai_bridge: ^0.1.0
+  native_ai_bridge: ^0.2.2
 ```
 
 Then run:
@@ -349,6 +349,76 @@ final session = await AppleIntelligenceSession.create(
 ```
 
 See the [generator README](../native_ai_bridge_generator/README.md) for full documentation.
+
+## Siri AI vs this package
+
+Apple's Siri AI Developer Preview (iOS 27.3 betas) lets Siri call your app's actions as **tools**, fill **generable entities** from what a person says, and follow **app skills** written as `SKILL.md` files. None of that goes through Foundation Models, and none of it can be registered from Dart.
+
+| | This package | Siri AI |
+|---|---|---|
+| What runs | Your prompts, on Apple's on-device model | Siri, which calls your app |
+| Where you declare it | Dart, at runtime | Swift App Intents and a skills bundle in the app target |
+| When Apple finds it | When you call the plugin | At build time, when Xcode extracts App Intents metadata |
+| Needs a running Flutter engine | Yes | No. Siri calls compiled Swift, even when the app is not running |
+
+So a Siri AI tool must be a Swift `AppIntent` compiled into your Runner target. A tool defined with `BaseTool` in Dart is only visible to the Foundation Models session you pass it to.
+
+### What Siri AI needs
+
+A tool is an `AppIntent` marked with `@AppIntent(.tool)`. The intent, and each of its parameters, needs a title and a description written for someone who does not know your app:
+
+```swift
+import AppIntents
+
+@available(iOS 27.3, *)
+@AppIntent(.tool)
+struct AddToCart: AppIntent {
+  static let title: LocalizedStringResource = "Add to Cart"
+  static let description = IntentDescription("Adds a product to the shopping cart.")
+
+  @Parameter(title: "Product", description: "The product to add")
+  var product: ProductEntity
+
+  @Parameter(title: "Quantity", description: "How many to add, from 1 to 10", default: 1)
+  var quantity: Int
+
+  func perform() async throws -> some IntentResult & ProvidesDialog {
+    try await Cart.shared.add(product, quantity: quantity)
+    return .result(dialog: "Added \(product.name) to your cart.")
+  }
+}
+```
+
+An app skill is a `SKILL.md` file in `Skills.skillsbundle/Skills/<name>/`. Create the bundle once in Xcode (File > New > File from Template > Skills Bundle) and add it to the app target. The frontmatter holds only `name` and `description`:
+
+```markdown
+---
+name: store-shopping
+description: Helps a shopper find products in the store and add them to the cart.
+---
+Use the search products tool first whenever the shopper describes something to buy.
+After adding a product, offer to open the cart. Never offer to pay; checkout happens in the app.
+```
+
+Xcode validates the bundle at build time. The name must be 1 to 64 characters from `a-z`, `0-9` and `-` and match its folder, the description must be one line of at most 1024 characters, and the body is limited to 10,000 characters. A bundle with errors provides no skills, and nothing warns you at runtime.
+
+### Limits of the preview
+
+- **OS and SDK.** Every Siri AI symbol is introduced in iOS 27.3 and needs the Xcode 27.3 beta SDK. Mark the Swift with `@available(iOS 27.3, *)`; devices on older versions keep your existing App Shortcuts.
+- **Devices.** iPhone, iPad, Mac and Apple Vision Pro models that support Apple Intelligence, in regions where Apple Intelligence and Siri AI are available. Test on a physical device; Apple's skill testing guide asks for a device, not the Simulator.
+- **Languages.** At the start of the preview Siri AI runs in English, French, Japanese, Korean, Portuguese and Spanish. Arabic is not supported.
+- **Distribution.** Siri AI reaches only development builds and internal TestFlight testers. External TestFlight testers and App Store users do not get it, even when the build contains the tools.
+- **API churn.** Apple says the App Intents API and Siri behaviour may change during the preview.
+
+### Generating the Swift from Dart
+
+You still ship Swift, but you do not have to write the boilerplate. `native_ai_bridge_generator` reads experimental Dart annotations (`@SiriTool`, `@SiriField`, `@SiriGenerableEntity` and `@SiriSkill`) and writes the Swift intents, generable entities, a handler protocol per tool and validated `SKILL.md` files:
+
+```bash
+dart run native_ai_bridge_generator:siri
+```
+
+You implement each tool's handler in Swift. See the [generator README](../native_ai_bridge_generator/README.md#siri-ai-tools-and-app-skills) for setup.
 
 ## Privacy
 

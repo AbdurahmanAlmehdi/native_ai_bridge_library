@@ -128,7 +128,7 @@ If the config is missing, the CLI exits 2 and prints this example.
 
 ### Phase 2: README boundary section and annotations
 
-- **Status:** Not started
+- **Status:** Done
 - **Scope:**
   - Add "Siri AI vs this package" to `native_ai_bridge/README.md`, with a hand-written Swift tool and a `SKILL.md` example. It covers iOS 27.3, devices, languages (no Arabic), and Apple's rule that the preview reaches only development builds and internal TestFlight testers.
   - Add the four experimental annotations and export them.

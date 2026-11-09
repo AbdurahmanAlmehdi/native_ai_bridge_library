@@ -1,3 +1,4 @@
+export 'annotations/siri_annotations.dart';
 export 'annotations/tool_annotations.dart';
 export 'apple_foundation_flutter_impl.dart';
 export 'enums/styles.dart';

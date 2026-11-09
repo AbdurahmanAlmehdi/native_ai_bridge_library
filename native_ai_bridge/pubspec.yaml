@@ -1,6 +1,6 @@
 name: native_ai_bridge
 description: A Flutter plugin for interacting with Apple's Foundation Models framework, providing on-device AI capabilities.
-version: 0.2.1
+version: 0.2.2
 homepage: https://github.com/AbdurahmanAlmehdi/native_ai_bridge_library/tree/main/native_ai_bridge
 repository: https://github.com/AbdurahmanAlmehdi/native_ai_bridge_library/tree/main/native_ai_bridge
 issue_tracker: https://github.com/AbdurahmanAlmehdi/native_ai_bridge_library/issues
@@ -12,6 +12,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  meta: ^1.11.0
   plugin_platform_interface: ^2.0.2
 
 dev_dependencies:
