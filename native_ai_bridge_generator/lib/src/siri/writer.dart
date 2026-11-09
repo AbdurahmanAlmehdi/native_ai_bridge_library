@@ -83,10 +83,15 @@ List<String> writeSiriOutput(
 }
 
 bool isGeneratedFile(String path, String content) {
-  if (path.endsWith('.swift')) {
-    return content.split('\n').first == generatedSwiftHeader;
+  final lines = content.split('\n');
+  if (path.endsWith(swiftFileSuffix)) {
+    return lines.first == generatedSwiftHeader;
   }
-  return content.split('\n').contains(generatedSkillHeader);
+  if (lines.first != '---') return false;
+  final closing = lines.indexOf('---', 1);
+  return closing > 0 &&
+      closing + 1 < lines.length &&
+      lines[closing + 1] == generatedSkillHeader;
 }
 
 Iterable<MapEntry<String, String>> _sorted(Map<String, String> files) =>
@@ -102,12 +107,12 @@ List<String> _generatedCandidates(
   return [
     if (swiftDir.existsSync())
       for (final entity in swiftDir.listSync())
-        if (entity is File && entity.path.endsWith('.g.swift'))
+        if (entity is File && entity.path.endsWith(swiftFileSuffix))
           p.posix.join(swiftOut, p.basename(entity.path)),
     if (skillsDir.existsSync())
       for (final entity in skillsDir.listSync())
         if (entity is Directory &&
-            File(p.join(entity.path, 'SKILL.md')).existsSync())
-          p.posix.join(skillsOut, p.basename(entity.path), 'SKILL.md'),
+            File(p.join(entity.path, skillFileName)).existsSync())
+          p.posix.join(skillsOut, p.basename(entity.path), skillFileName),
   ]..sort();
 }

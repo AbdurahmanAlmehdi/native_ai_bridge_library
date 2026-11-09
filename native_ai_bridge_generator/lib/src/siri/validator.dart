@@ -1,12 +1,12 @@
 import 'package:native_ai_bridge_generator/src/siri/manifest.dart';
-import 'package:native_ai_bridge_generator/src/siri/skill_renderer.dart';
 
 enum SiriErrorCode {
   skillName('skill-name'),
   skillDescription('skill-description'),
   skillBody('skill-body'),
   toolMetadata('tool-metadata'),
-  unsupportedType('unsupported-type');
+  unsupportedType('unsupported-type'),
+  nameClash('name-clash');
 
   const SiriErrorCode(this.id);
 
@@ -38,7 +38,27 @@ List<SiriError> validateManifest(SiriManifest manifest) {
     for (final entity in manifest.entities) ..._validateEntity(entity),
     for (final siriEnum in manifest.enums) ..._validateEnum(siriEnum),
     ..._validateSkills(manifest.skills),
+    ..._validateNames(manifest),
   ];
+}
+
+Iterable<SiriError> _validateNames(SiriManifest manifest) sync* {
+  final declarations = [
+    for (final tool in manifest.tools) (tool.name, tool.location),
+    for (final entity in manifest.entities) (entity.name, entity.location),
+    for (final siriEnum in manifest.enums) (siriEnum.name, siriEnum.location),
+  ];
+  final seen = <String>{};
+  for (final (name, location) in declarations) {
+    if (!seen.add(name)) {
+      yield SiriError(
+        SiriErrorCode.nameClash,
+        '$name is marked both @SiriTool and @SiriGenerableEntity; both would '
+        'write ${swiftFileName(name)}. Use one annotation per declaration.',
+        location,
+      );
+    }
+  }
 }
 
 Iterable<SiriError> _validateTool(SiriTool tool) sync* {
@@ -176,7 +196,7 @@ Iterable<SiriError> _validateSkills(List<SiriSkill> skills) sync* {
       );
     }
 
-    final bodyLength = normalizeSkillBody(skill.body).trimRight().runes.length;
+    final bodyLength = skill.body.trimRight().runes.length;
     if (bodyLength > skillBodyBudget) {
       yield SiriError(
         SiriErrorCode.skillBody,

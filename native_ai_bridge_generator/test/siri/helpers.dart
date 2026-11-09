@@ -15,6 +15,7 @@ void expectGolden(String actual, String goldenPath) {
     file
       ..createSync(recursive: true)
       ..writeAsStringSync(actual);
+    fail('Updated golden $goldenPath. Run again without UPDATE_GOLDENS=1.');
   }
   expect(
     file.existsSync(),
@@ -22,6 +23,15 @@ void expectGolden(String actual, String goldenPath) {
     reason: 'Missing golden $goldenPath. Run with UPDATE_GOLDENS=1.',
   );
   expect(actual, file.readAsStringSync(), reason: 'Golden $goldenPath');
+}
+
+List<String> goldenFiles(String folder) {
+  final directory = Directory(p.join('test/siri/goldens', folder));
+  return [
+    for (final entity in directory.listSync(recursive: true))
+      if (entity is File)
+        p.posix.joinAll(p.split(p.relative(entity.path, from: directory.path))),
+  ]..sort();
 }
 
 Future<Directory> createApp({

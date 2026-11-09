@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:native_ai_bridge_generator/src/siri/config.dart';
+import 'package:native_ai_bridge_generator/src/siri/manifest.dart';
 import 'package:native_ai_bridge_generator/src/siri/reader.dart';
 import 'package:native_ai_bridge_generator/src/siri/skill_renderer.dart';
 import 'package:native_ai_bridge_generator/src/siri/swift_renderer.dart';
@@ -66,30 +67,15 @@ Future<int> run(
     return 2;
   }
 
-  final swiftOut = p.posix.normalize(config.swiftOut);
-  final skillsOut = p.posix.normalize(config.skillsOut);
-  final List<SiriError> errors;
-  final Map<String, String> files;
+  final SiriManifest manifest;
   try {
-    final manifest = await readSiriManifest(config.input, root: appRoot);
-    errors = validateManifest(manifest);
-    files = errors.isNotEmpty
-        ? const {}
-        : {
-            for (final MapEntry(:key, :value) in renderSwift(
-              manifest,
-              compilationCondition: config.compilationCondition,
-            ).entries)
-              p.posix.join(swiftOut, key): value,
-            for (final MapEntry(:key, :value) in renderSkills(
-              manifest,
-            ).entries)
-              p.posix.join(skillsOut, key): value,
-          };
+    manifest = await readSiriManifest(config.input, root: appRoot);
   } on SiriReadException catch (error) {
     error.messages.forEach(stderrSink.writeln);
     return 1;
   }
+
+  final errors = validateManifest(manifest);
   if (errors.isNotEmpty) {
     errors.forEach(stderrSink.writeln);
     stderrSink.writeln(
@@ -99,11 +85,20 @@ Future<int> run(
     return 1;
   }
 
+  final files = {
+    for (final MapEntry(:key, :value) in renderSwift(
+      manifest,
+      compilationCondition: config.compilationCondition,
+    ).entries)
+      p.posix.join(config.swiftOut, key): value,
+    for (final MapEntry(:key, :value) in renderSkills(manifest).entries)
+      p.posix.join(config.skillsOut, key): value,
+  };
   final plan = planSiriOutput(
     appRoot,
     files,
-    swiftOut: swiftOut,
-    skillsOut: skillsOut,
+    swiftOut: config.swiftOut,
+    skillsOut: config.skillsOut,
   );
 
   if (options.flag('check')) {
@@ -151,8 +146,8 @@ int _write(
     return 1;
   }
 
-  final hasSwift = files.keys.any((path) => path.endsWith('.swift'));
-  final hasSkills = files.keys.any((path) => path.endsWith('SKILL.md'));
+  final hasSwift = files.keys.any((path) => path.endsWith(swiftFileSuffix));
+  final hasSkills = files.keys.any((path) => path.endsWith(skillFileName));
   if (hasSwift && !Directory(p.join(root, config.swiftOut)).existsSync()) {
     err.writeln(
       'warning: ${config.swiftOut} did not exist, so it was created. Add it '
@@ -160,7 +155,7 @@ int _write(
       'the generated Swift is compiled.',
     );
   }
-  final bundle = p.dirname(config.skillsOut);
+  final bundle = p.posix.dirname(config.skillsOut);
   if (hasSkills && !Directory(p.join(root, bundle)).existsSync()) {
     err.writeln(
       'warning: $bundle did not exist, so it was created. Xcode only '

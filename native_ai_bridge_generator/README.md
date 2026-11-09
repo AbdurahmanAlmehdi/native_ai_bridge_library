@@ -404,7 +404,7 @@ SWIFT_ACTIVE_COMPILATION_CONDITIONS[sdk=iphoneos27.3*] = $(inherited) SIRI_AI_TO
 SWIFT_ACTIVE_COMPILATION_CONDITIONS[sdk=iphonesimulator27.3*] = $(inherited) SIRI_AI_TOOLS
 ```
 
-Older Xcode versions then build the app without the Siri code. Add lines for later SDKs as Apple ships them, or drop the condition once 27.3 is the oldest SDK you build with. If your Runner target sets `SWIFT_ACTIVE_COMPILATION_CONDITIONS` itself, include `$(inherited)` there too. Wrap your handlers and their registration in the same `#if`.
+Older Xcode versions then build the app without the Siri code. The patterns match only 27.3 SDKs: a later SDK also builds without the Siri code, silently, until you add a line for it. Add lines for later SDKs as Apple ships them, or drop the condition once 27.3 is the oldest SDK you build with. If your Runner target sets `SWIFT_ACTIVE_COMPILATION_CONDITIONS` itself, include `$(inherited)` there too. Wrap your handlers and their registration in the same `#if`.
 
 ### Validation errors
 
@@ -421,6 +421,7 @@ lib/siri/siri_tools.dart:12:7: error [tool-metadata] Tool Search needs a non-emp
 | `skill-body` | At most 10,000 characters, Apple's limit, counting the generated header line. |
 | `tool-metadata` | A non-empty title and description on every tool, parameter and entity property, and on any `@SiriField` on an enum case. |
 | `unsupported-type` | A map, record, `dynamic`, a nullable `List`, a `List` of nullable values, a nested `List`, a class or enum without `@SiriGenerableEntity`, or a nullable entity property. |
+| `name-clash` | A declaration marked both `@SiriTool` and `@SiriGenerableEntity`, which would write the same `.g.swift` file twice. |
 
 A Dart error in the input file (an unresolved import, say, before `flutter pub get`) is reported as `error [dart]` with its location.
 

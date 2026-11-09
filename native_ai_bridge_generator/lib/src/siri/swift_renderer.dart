@@ -10,11 +10,11 @@ Map<String, String> renderSwift(
 
   return {
     for (final tool in manifest.tools)
-      '${tool.name}.g.swift': file(_renderTool(tool)),
+      swiftFileName(tool.name): file(_renderTool(tool)),
     for (final entity in manifest.entities)
-      '${entity.name}.g.swift': file(_renderEntity(entity)),
+      swiftFileName(entity.name): file(_renderEntity(entity)),
     for (final siriEnum in manifest.enums)
-      '${siriEnum.name}.g.swift': file(_renderEnum(siriEnum)),
+      swiftFileName(siriEnum.name): file(_renderEnum(siriEnum)),
   };
 }
 
@@ -34,8 +34,11 @@ String _wrap(List<String> body, {String? compilationCondition}) {
 List<String> _renderTool(SiriTool tool) {
   final handler = '${tool.name}Handler';
   final arguments = tool.parameters
-      .map((p) => '${p.name}: ${swiftIdentifier(p.name)}')
+      .map((p) => '${swiftIdentifier(p.name)}: ${swiftIdentifier(p.name)}')
       .join(', ');
+  final title =
+      'static let $appleTitleRequirement: $appleTitleType = '
+      '${swiftString(tool.title)}';
   final description =
       '$appleIntentDescription(${swiftString(tool.description)})';
   final signature = tool.parameters
@@ -45,14 +48,14 @@ List<String> _renderTool(SiriTool tool) {
   return [
     appleAvailability,
     'protocol $handler: Sendable {',
-    '  func perform($signature) async throws -> String',
+    '  func $applePerformRequirement($signature) async throws -> String',
     '}',
     '',
     appleAvailability,
     appleToolMacro,
     'struct ${tool.name}: $appleIntentProtocol {',
-    '  static let title: $appleTitleType = ${swiftString(tool.title)}',
-    '  static let description = $description',
+    '  $title',
+    '  static let $appleDescriptionRequirement = $description',
     '',
     '  nonisolated(unsafe) static var handler: (any $handler)?',
     for (final parameter in tool.parameters) ...[
@@ -63,12 +66,12 @@ List<String> _renderTool(SiriTool tool) {
     '',
     '  init() {}',
     '',
-    '  func perform() async throws -> $appleDialogResult {',
+    '  func $applePerformRequirement() async throws -> $appleDialogResult {',
     '    guard let handler = Self.handler else {',
     '      throw HandlerError.notSet',
     '    }',
-    '    let reply = try await handler.perform($arguments)',
-    r'    return .result(dialog: "\(reply)")',
+    '    let reply = try await handler.$applePerformRequirement($arguments)',
+    '    ${appleDialogReturn('reply')}',
     '  }',
     '',
     '  enum HandlerError: Error {',
@@ -79,14 +82,11 @@ List<String> _renderTool(SiriTool tool) {
 }
 
 List<String> _renderEntity(SiriEntity entity) {
-  final typeDisplay =
-      'static let typeDisplayRepresentation: '
-      '$appleTypeDisplayRepresentation = ${swiftString(entity.title)}';
   return [
     appleAvailability,
     appleGenerableEntityMacro,
     'struct ${entity.name}: $appleTransientEntityProtocol {',
-    '  $typeDisplay',
+    '  ${_typeDisplay(entity.title)}',
     for (final property in entity.properties) ...[
       '',
       '  $applePropertyWrapper(${_titleAndDescription(property)})',
@@ -95,7 +95,7 @@ List<String> _renderEntity(SiriEntity entity) {
     '',
     '  init() {}',
     '',
-    '  var displayRepresentation: $appleDisplayRepresentation {',
+    '  var $appleDisplayRequirement: $appleDisplayRepresentation {',
     '    ${swiftString(entity.title)}',
     '  }',
     '}',
@@ -103,9 +103,6 @@ List<String> _renderEntity(SiriEntity entity) {
 }
 
 List<String> _renderEnum(SiriEnum siriEnum) {
-  final typeDisplay =
-      'static let typeDisplayRepresentation: '
-      '$appleTypeDisplayRepresentation = ${swiftString(siriEnum.title)}';
   final caseDisplay =
       'static let $appleCaseDisplayRepresentations: '
       '[${siriEnum.name}: $appleDisplayRepresentation] = [';
@@ -115,7 +112,7 @@ List<String> _renderEnum(SiriEnum siriEnum) {
     for (final enumCase in siriEnum.cases)
       '  case ${swiftIdentifier(enumCase.name)}',
     '',
-    '  $typeDisplay',
+    '  ${_typeDisplay(siriEnum.title)}',
     '  $caseDisplay',
     for (final enumCase in siriEnum.cases)
       '    .${swiftIdentifier(enumCase.name)}: ${_caseDisplay(enumCase)},',
@@ -124,17 +121,21 @@ List<String> _renderEnum(SiriEnum siriEnum) {
   ];
 }
 
+String _typeDisplay(String title) =>
+    'static let $appleTypeDisplayRequirement: '
+    '$appleTypeDisplayRepresentation = ${swiftString(title)}';
+
 String _declaration(SiriField field) =>
     'var ${swiftIdentifier(field.name)}: ${appleSwiftType(field.type)}';
 
 String _titleAndDescription(SiriField field) =>
-    'title: ${swiftString(field.title!)}, '
-    'description: ${swiftString(field.description!)}';
+    '$appleTitleLabel: ${swiftString(field.title!)}, '
+    '$appleDescriptionLabel: ${swiftString(field.description!)}';
 
 String _caseDisplay(SiriEnumCase enumCase) {
   final subtitle = enumCase.subtitle;
   if (subtitle == null) return swiftString(enumCase.title);
   return '$appleDisplayRepresentation('
-      'title: ${swiftString(enumCase.title)}, '
-      'subtitle: ${swiftString(subtitle)})';
+      '$appleTitleLabel: ${swiftString(enumCase.title)}, '
+      '$appleSubtitleLabel: ${swiftString(subtitle)})';
 }

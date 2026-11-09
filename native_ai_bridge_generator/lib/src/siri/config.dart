@@ -57,7 +57,7 @@ class SiriConfig {
       );
     }
 
-    final condition = _string(siri, 'compilation_condition', required: false);
+    final condition = _optionalString(siri, 'compilation_condition');
     if (condition != null &&
         !RegExp(r'^[A-Za-z_][A-Za-z0-9_]*$').hasMatch(condition)) {
       throw SiriConfigException(
@@ -66,9 +66,9 @@ class SiriConfig {
     }
 
     return SiriConfig(
-      input: _string(siri, 'input')!,
-      swiftOut: _string(siri, 'swift_out')!,
-      skillsOut: _string(siri, 'skills_out')!,
+      input: _requiredString(siri, 'input'),
+      swiftOut: p.posix.normalize(_requiredString(siri, 'swift_out')),
+      skillsOut: p.posix.normalize(_requiredString(siri, 'skills_out')),
       compilationCondition: condition,
     );
   }
@@ -85,9 +85,11 @@ class SiriConfig {
   final String skillsOut;
   final String? compilationCondition;
 
-  static String? _string(YamlMap map, String key, {bool required = true}) {
+  static String? _optionalString(YamlMap map, String key) =>
+      map[key] == null ? null : _requiredString(map, key);
+
+  static String _requiredString(YamlMap map, String key) {
     final value = map[key];
-    if (value == null && !required) return null;
     if (value is! String || value.trim().isEmpty) {
       throw SiriConfigException('"siri.$key" must be a non-empty string.');
     }

@@ -32,25 +32,30 @@ Future<SiriManifest> readSiriManifest(
 }) async {
   final absolute = p.normalize(p.absolute(root, inputPath));
   final collection = AnalysisContextCollection(includedPaths: [absolute]);
-  final result = await collection
-      .contextFor(absolute)
-      .currentSession
-      .getResolvedLibrary(absolute);
-  if (result is! ResolvedLibraryResult) {
-    throw SiriReadException([
-      '${_relative(absolute, root)}: could not be resolved as a Dart library.',
-    ]);
+  try {
+    final result = await collection
+        .contextFor(absolute)
+        .currentSession
+        .getResolvedLibrary(absolute);
+    if (result is! ResolvedLibraryResult) {
+      final path = _relative(absolute, root);
+      throw SiriReadException([
+        '$path: could not be resolved as a Dart library.',
+      ]);
+    }
+
+    final errors = [
+      for (final unit in result.units)
+        for (final diagnostic in unit.diagnostics)
+          if (diagnostic.severity == Severity.error)
+            _formatDiagnostic(unit, diagnostic, root),
+    ];
+    if (errors.isNotEmpty) throw SiriReadException(errors);
+
+    return _ManifestReader(result.element, root).read();
+  } finally {
+    await collection.dispose();
   }
-
-  final errors = [
-    for (final unit in result.units)
-      for (final diagnostic in unit.diagnostics)
-        if (diagnostic.severity == Severity.error)
-          _formatDiagnostic(unit, diagnostic, root),
-  ];
-  if (errors.isNotEmpty) throw SiriReadException(errors);
-
-  return _ManifestReader(result.element, root).read();
 }
 
 class _ManifestReader {
@@ -132,7 +137,7 @@ class _ManifestReader {
     return SiriSkill(
       name: annotation.read('name').stringValue,
       description: annotation.read('description').stringValue,
-      body: annotation.read('body').stringValue,
+      body: normalizeSkillBody(annotation.read('body').stringValue),
       location: _locate(element),
     );
   }

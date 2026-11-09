@@ -29,6 +29,7 @@ void main() {
       'ProductSort.g.swift',
     ]);
     files.forEach((name, content) => expectGolden(content, 'swift/$name'));
+    expect(goldenFiles('swift'), files.keys.toList()..sort());
   });
 
   test('renders the expected SKILL.md files', () {
@@ -36,5 +37,6 @@ void main() {
 
     expect(files.keys, ['store-shopping/SKILL.md', 'order-help/SKILL.md']);
     files.forEach((path, content) => expectGolden(content, 'skills/$path'));
+    expect(goldenFiles('skills'), files.keys.toList()..sort());
   });
 }

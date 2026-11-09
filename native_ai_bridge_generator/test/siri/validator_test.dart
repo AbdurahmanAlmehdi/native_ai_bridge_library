@@ -155,4 +155,19 @@ void main() {
       ),
     ]);
   });
+
+  test('unsupported-type rejects an entity from another library', () async {
+    final manifest = await readSiriManifest(
+      'test/siri/fixtures/cross_library/siri_tools.dart',
+      root: '.',
+    );
+
+    const message =
+        'test/siri/fixtures/cross_library/siri_tools.dart:8:21: error '
+        '[unsupported-type] Parameter filter of tool Search has an '
+        'unsupported type: Filter, which is declared outside the input '
+        'library. Use String, int, double, bool, DateTime, an enum or '
+        'class marked @SiriGenerableEntity, or a List of these.';
+    expect(validateManifest(manifest).map((error) => '$error'), [message]);
+  });
 }

@@ -83,7 +83,7 @@ void main() {
 
       expect(files['Move.g.swift'], contains('var `func`: String'));
       expect(files['Move.g.swift'], contains('perform(`func`: String)'));
-      expect(files['Move.g.swift'], contains('perform(func: `func`)'));
+      expect(files['Move.g.swift'], contains('perform(`func`: `func`)'));
     });
 
     test('maps every supported type', () {
@@ -126,13 +126,16 @@ void main() {
   });
 
   group('renderSkill', () {
-    SiriSkill skill({String description = 'Helps.', String body = 'Body.'}) =>
-        SiriSkill(
-          name: 'store',
-          description: description,
-          body: body,
-          location: _location,
-        );
+    SiriSkill skill({
+      String name = 'store',
+      String description = 'Helps.',
+      String body = 'Body.\n',
+    }) => SiriSkill(
+      name: name,
+      description: description,
+      body: body,
+      location: _location,
+    );
 
     test('writes only name and description in the frontmatter', () {
       expect(
@@ -161,10 +164,18 @@ void main() {
       );
     });
 
+    test('quotes a name YAML would read as another type', () {
+      expect(renderSkill(skill(name: 'yes')), contains('name: "yes"\n'));
+      expect(renderSkill(skill(name: '2026')), contains('name: "2026"\n'));
+      expect(renderSkill(skill()), contains('name: store\n'));
+    });
+  });
+
+  group('normalizeSkillBody', () {
     test('trims blank lines around the body and ends with a newline', () {
       expect(
-        renderSkill(skill(body: '\n\nFirst.\r\n\nSecond.  \n\n')),
-        endsWith('$generatedSkillHeader\nFirst.\n\nSecond.\n'),
+        normalizeSkillBody('\n\nFirst.\r\n\nSecond.  \n\n'),
+        'First.\n\nSecond.\n',
       );
     });
   });

@@ -263,6 +263,34 @@ siri:
       expect(result.err, contains('compilation_condition: SIRI_AI_TOOLS'));
     });
 
+    for (final (name, config, message) in [
+      ('is not valid YAML', 'siri: [', 'is not valid YAML'),
+      ('has no siri section', 'other: 1\n', 'has no "siri" section.'),
+      (
+        'misses a required key',
+        'siri:\n  input: a.dart\n  swift_out: a\n',
+        '"siri.skills_out" must be a non-empty string.',
+      ),
+      (
+        'has a non-string value',
+        'siri:\n  input: 3\n  swift_out: a\n  skills_out: b\n',
+        '"siri.input" must be a non-empty string.',
+      ),
+    ]) {
+      test('when the config $name', () async {
+        final root = await createApp(config: config);
+
+        final result = await _run(root);
+
+        expect(result.exitCode, 2);
+        expect(result.err, contains(message));
+        expect(
+          result.err,
+          contains('siri:\n  input: lib/siri/siri_tools.dart'),
+        );
+      });
+    }
+
     test('when the config has an unknown key', () async {
       final root = await createApp(
         config: 'siri:\n  input: a.dart\n  swiftout: x\n',

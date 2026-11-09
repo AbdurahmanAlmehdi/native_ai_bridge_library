@@ -15,6 +15,17 @@ const appleTypeDisplayRepresentation = 'TypeDisplayRepresentation';
 const appleDisplayRepresentation = 'DisplayRepresentation';
 const appleCaseDisplayRepresentations = 'caseDisplayRepresentations';
 const appleDialogResult = 'some IntentResult & ProvidesDialog';
+const appleTitleRequirement = 'title';
+const appleDescriptionRequirement = 'description';
+const applePerformRequirement = 'perform';
+const appleTypeDisplayRequirement = 'typeDisplayRepresentation';
+const appleDisplayRequirement = 'displayRepresentation';
+const appleTitleLabel = 'title';
+const appleDescriptionLabel = 'description';
+const appleSubtitleLabel = 'subtitle';
+
+String appleDialogReturn(String value) =>
+    'return .result(dialog: "\\($value)")';
 
 String appleSwiftType(SiriType type) {
   final base = switch (type) {
@@ -49,6 +60,11 @@ String swiftIdentifier(String name) =>
     _swiftKeywords.contains(name) ? '`$name`' : name;
 
 const _swiftKeywords = {
+  'Any',
+  'Protocol',
+  'Self',
+  'Type',
+  'as',
   'associatedtype',
   'break',
   'case',
