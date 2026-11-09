@@ -13,13 +13,11 @@ import 'tool_argument.dart';
 //   List<ToolArgument> get arguments => [ToolArgument(name: 'city', type: ToolArgumentType.string, description: 'The city to get the weather for')];
 // }
 abstract class Tool {
-
   String get name;
 
   String get description;
 
   List<ToolArgument> get arguments;
-
 
   Map<String, dynamic> toJson() {
     return {
@@ -45,13 +43,11 @@ class BaseTool extends Tool {
   @override
   final List<ToolArgument> arguments;
 
-
   BaseTool({
     required this.name,
     required this.description,
     required this.arguments,
   });
-
 
   factory BaseTool.fromJson(Map<String, dynamic> json) {
     return BaseTool(

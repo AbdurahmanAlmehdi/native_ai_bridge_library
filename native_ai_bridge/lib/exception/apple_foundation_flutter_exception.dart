@@ -9,4 +9,3 @@ class AppleFoundationException implements Exception {
   String toString() =>
       'AppleFoundationException: $message${code != null ? ' (Code: $code)' : ''}${details != null ? ' Details: $details' : ''}';
 }
-

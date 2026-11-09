@@ -11,17 +11,16 @@ abstract class ToolArgument {
   /// Optional constraints for the argument.
   ///
   /// For example, for numeric types, this could contain range constraints.
-  /// 
+  ///
   /// {
   ///   "min": 1,
   ///   "max": 100
   /// }
-  /// 
+  ///
   /// {
   ///   "pattern": "^[a-zA-Z]+$"
   /// }
   Map<String, dynamic>? get constraints;
-
 
   Map<String, dynamic> toJson() {
     return {
@@ -39,7 +38,6 @@ abstract class ToolArgument {
   }
 }
 
-
 class BaseToolArgument extends ToolArgument {
   @override
   final String name;
@@ -56,7 +54,6 @@ class BaseToolArgument extends ToolArgument {
   @override
   final Map<String, dynamic>? constraints;
 
-
   BaseToolArgument({
     required this.name,
     required this.type,
@@ -64,7 +61,6 @@ class BaseToolArgument extends ToolArgument {
     this.isOptional = false,
     this.constraints,
   });
-
 
   factory BaseToolArgument.fromJson(Map<String, dynamic> json) {
     return BaseToolArgument(

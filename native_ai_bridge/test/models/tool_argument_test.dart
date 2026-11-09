@@ -35,10 +35,7 @@ void main() {
           name: 'count',
           type: ToolArgumentType.integer,
           description: 'Number of results',
-          constraints: {
-            'min': 1,
-            'max': 100,
-          },
+          constraints: {'min': 1, 'max': 100},
         );
 
         expect(argument.constraints, isNotNull);

@@ -18,11 +18,7 @@ void main() {
     test('should create ToolCall with multiple arguments', () {
       final toolCall = ToolCall(
         toolName: 'get_weather',
-        arguments: {
-          'city': 'Boston',
-          'units': 'metric',
-          'language': 'en',
-        },
+        arguments: {'city': 'Boston', 'units': 'metric', 'language': 'en'},
         sessionId: 'session_123',
       );
 
@@ -108,11 +104,7 @@ void main() {
     test('should round-trip through JSON correctly', () {
       final original = ToolCall(
         toolName: 'get_weather',
-        arguments: {
-          'city': 'Boston',
-          'units': 'metric',
-          'count': 5,
-        },
+        arguments: {'city': 'Boston', 'units': 'metric', 'count': 5},
         sessionId: 'session_123',
       );
 
