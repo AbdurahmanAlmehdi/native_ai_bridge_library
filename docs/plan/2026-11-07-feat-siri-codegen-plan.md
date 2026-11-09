@@ -139,7 +139,7 @@ If the config is missing, the CLI exits 2 and prints this example.
 
 ### Phase 3: Reader, renderers, validator, writer and CLI
 
-- **Status:** Not started
+- **Status:** Done
 - **Scope:**
   - Build the `SiriManifest`, the analyzer reader, the Swift and `SKILL.md` renderers with the fixed header and `compilation_condition`, the validator with its error catalogue, the writer with header-guarded overwrite and `--check`, and `bin/siri.dart` with `run()`.
   - Tests:

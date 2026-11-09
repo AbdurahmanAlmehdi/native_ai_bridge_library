@@ -1,0 +1,40 @@
+import 'package:native_ai_bridge_generator/src/siri/manifest.dart';
+import 'package:native_ai_bridge_generator/src/siri/reader.dart';
+import 'package:native_ai_bridge_generator/src/siri/skill_renderer.dart';
+import 'package:native_ai_bridge_generator/src/siri/swift_renderer.dart';
+import 'package:native_ai_bridge_generator/src/siri/validator.dart';
+import 'package:test/test.dart';
+
+import 'helpers.dart';
+
+void main() {
+  late SiriManifest manifest;
+
+  setUpAll(() async {
+    manifest = await readSiriManifest(validFixture, root: '.');
+  });
+
+  test('the fixture library passes validation', () {
+    expect(validateManifest(manifest), isEmpty);
+  });
+
+  test('renders the expected Swift files', () {
+    final files = renderSwift(manifest, compilationCondition: 'SIRI_AI_TOOLS');
+
+    expect(files.keys, [
+      'SearchProducts.g.swift',
+      'AddToCart.g.swift',
+      'ProductSearch.g.swift',
+      'PriceRange.g.swift',
+      'ProductSort.g.swift',
+    ]);
+    files.forEach((name, content) => expectGolden(content, 'swift/$name'));
+  });
+
+  test('renders the expected SKILL.md files', () {
+    final files = renderSkills(manifest);
+
+    expect(files.keys, ['store-shopping/SKILL.md', 'order-help/SKILL.md']);
+    files.forEach((path, content) => expectGolden(content, 'skills/$path'));
+  });
+}
