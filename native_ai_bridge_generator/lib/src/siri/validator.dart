@@ -1,4 +1,5 @@
 import 'package:native_ai_bridge_generator/src/siri/manifest.dart';
+import 'package:native_ai_bridge_generator/src/siri/output_files.dart';
 
 enum SiriErrorCode {
   skillName('skill-name'),
@@ -32,6 +33,27 @@ const int skillBodyBudget =
 
 final _skillNamePattern = RegExp(r'^[a-z0-9]+(-[a-z0-9]+)*$');
 
+class ValidatedSiriManifest {
+  const ValidatedSiriManifest._(this.manifest);
+
+  final SiriManifest manifest;
+}
+
+class SiriValidationException implements Exception {
+  const SiriValidationException(this.errors);
+
+  final List<SiriError> errors;
+
+  @override
+  String toString() => errors.join('\n');
+}
+
+ValidatedSiriManifest validManifest(SiriManifest manifest) {
+  final errors = validateManifest(manifest);
+  if (errors.isNotEmpty) throw SiriValidationException(errors);
+  return ValidatedSiriManifest._(manifest);
+}
+
 List<SiriError> validateManifest(SiriManifest manifest) {
   return [
     for (final tool in manifest.tools) ..._validateTool(tool),
@@ -61,7 +83,7 @@ Iterable<SiriError> _validateNames(SiriManifest manifest) sync* {
   }
 }
 
-Iterable<SiriError> _validateTool(SiriTool tool) sync* {
+Iterable<SiriError> _validateTool(SiriToolSpec tool) sync* {
   if (_isBlank(tool.title) || _isBlank(tool.description)) {
     yield SiriError(
       SiriErrorCode.toolMetadata,
@@ -79,7 +101,7 @@ Iterable<SiriError> _validateTool(SiriTool tool) sync* {
   }
 }
 
-Iterable<SiriError> _validateEntity(SiriEntity entity) sync* {
+Iterable<SiriError> _validateEntity(SiriEntitySpec entity) sync* {
   if (_isBlank(entity.title)) {
     yield SiriError(
       SiriErrorCode.toolMetadata,
@@ -96,7 +118,7 @@ Iterable<SiriError> _validateEntity(SiriEntity entity) sync* {
   }
 }
 
-Iterable<SiriError> _validateEnum(SiriEnum siriEnum) sync* {
+Iterable<SiriError> _validateEnum(SiriEnumSpec siriEnum) sync* {
   if (_isBlank(siriEnum.title)) {
     yield SiriError(
       SiriErrorCode.toolMetadata,
@@ -106,7 +128,7 @@ Iterable<SiriError> _validateEnum(SiriEnum siriEnum) sync* {
   }
   for (final enumCase in siriEnum.cases) {
     if (_isBlank(enumCase.title) ||
-        (enumCase.subtitle?.trim().isEmpty ?? false)) {
+        (enumCase.subtitle != null && _isBlank(enumCase.subtitle))) {
       yield SiriError(
         SiriErrorCode.toolMetadata,
         'Case ${enumCase.name} of enum ${siriEnum.name} needs a non-empty '
@@ -118,16 +140,11 @@ Iterable<SiriError> _validateEnum(SiriEnum siriEnum) sync* {
 }
 
 Iterable<SiriError> _validateField(
-  SiriField field, {
+  SiriFieldSpec field, {
   required String owner,
   required bool allowOptional,
 }) sync* {
-  final title = field.title;
-  final description = field.description;
-  if (title == null ||
-      description == null ||
-      _isBlank(title) ||
-      _isBlank(description)) {
+  if (_isBlank(field.title) || _isBlank(field.description)) {
     yield SiriError(
       SiriErrorCode.toolMetadata,
       '$owner needs @SiriField with a non-empty title and description.',
@@ -160,7 +177,7 @@ String? _typeProblem(SiriType type, {required bool allowOptional}) {
   return null;
 }
 
-Iterable<SiriError> _validateSkills(List<SiriSkill> skills) sync* {
+Iterable<SiriError> _validateSkills(List<SiriSkillSpec> skills) sync* {
   final seen = <String>{};
   for (final skill in skills) {
     final name = skill.name;
@@ -209,4 +226,4 @@ Iterable<SiriError> _validateSkills(List<SiriSkill> skills) sync* {
   }
 }
 
-bool _isBlank(String value) => value.trim().isEmpty;
+bool _isBlank(String? value) => value == null || value.trim().isEmpty;

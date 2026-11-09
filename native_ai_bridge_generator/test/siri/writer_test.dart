@@ -1,4 +1,4 @@
-import 'package:native_ai_bridge_generator/src/siri/manifest.dart';
+import 'package:native_ai_bridge_generator/src/siri/output_files.dart';
 import 'package:native_ai_bridge_generator/src/siri/writer.dart';
 import 'package:test/test.dart';
 

@@ -29,8 +29,12 @@ struct GetForecast: AppIntent {
     return .result(dialog: "\(reply)")
   }
 
-  enum HandlerError: Error {
+  enum HandlerError: Error, CustomLocalizedStringResourceConvertible {
     case notSet
+
+    var localizedStringResource: LocalizedStringResource {
+      "Get Forecast is not set up in this app yet."
+    }
   }
 }
 #endif

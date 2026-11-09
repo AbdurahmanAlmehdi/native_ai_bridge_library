@@ -41,8 +41,12 @@ struct AddToCart: AppIntent {
     return .result(dialog: "\(reply)")
   }
 
-  enum HandlerError: Error {
+  enum HandlerError: Error, CustomLocalizedStringResourceConvertible {
     case notSet
+
+    var localizedStringResource: LocalizedStringResource {
+      "Add to Cart is not set up in this app yet."
+    }
   }
 }
 #endif

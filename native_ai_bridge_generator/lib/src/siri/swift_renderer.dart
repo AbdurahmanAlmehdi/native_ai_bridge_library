@@ -1,10 +1,13 @@
 import 'package:native_ai_bridge_generator/src/siri/apple_templates.dart';
 import 'package:native_ai_bridge_generator/src/siri/manifest.dart';
+import 'package:native_ai_bridge_generator/src/siri/output_files.dart';
+import 'package:native_ai_bridge_generator/src/siri/validator.dart';
 
 Map<String, String> renderSwift(
-  SiriManifest manifest, {
+  ValidatedSiriManifest validated, {
   String? compilationCondition,
 }) {
+  final manifest = validated.manifest;
   String file(List<String> body) =>
       _wrap(body, compilationCondition: compilationCondition);
 
@@ -31,7 +34,7 @@ String _wrap(List<String> body, {String? compilationCondition}) {
   ].join('\n');
 }
 
-List<String> _renderTool(SiriTool tool) {
+List<String> _renderTool(SiriToolSpec tool) {
   final handler = '${tool.name}Handler';
   final arguments = tool.parameters
       .map((p) => '${swiftIdentifier(p.name)}: ${swiftIdentifier(p.name)}')
@@ -74,14 +77,18 @@ List<String> _renderTool(SiriTool tool) {
     '    ${appleDialogReturn('reply')}',
     '  }',
     '',
-    '  enum HandlerError: Error {',
+    '  enum HandlerError: Error, $appleErrorMessageProtocol {',
     '    case notSet',
+    '',
+    '    var $appleErrorMessageRequirement: $appleTitleType {',
+    '      ${swiftString('${tool.title} is not set up in this app yet.')}',
+    '    }',
     '  }',
     '}',
   ];
 }
 
-List<String> _renderEntity(SiriEntity entity) {
+List<String> _renderEntity(SiriEntitySpec entity) {
   return [
     appleAvailability,
     appleGenerableEntityMacro,
@@ -102,7 +109,7 @@ List<String> _renderEntity(SiriEntity entity) {
   ];
 }
 
-List<String> _renderEnum(SiriEnum siriEnum) {
+List<String> _renderEnum(SiriEnumSpec siriEnum) {
   final caseDisplay =
       'static let $appleCaseDisplayRepresentations: '
       '[${siriEnum.name}: $appleDisplayRepresentation] = [';
@@ -125,14 +132,14 @@ String _typeDisplay(String title) =>
     'static let $appleTypeDisplayRequirement: '
     '$appleTypeDisplayRepresentation = ${swiftString(title)}';
 
-String _declaration(SiriField field) =>
+String _declaration(SiriFieldSpec field) =>
     'var ${swiftIdentifier(field.name)}: ${appleSwiftType(field.type)}';
 
-String _titleAndDescription(SiriField field) =>
+String _titleAndDescription(SiriFieldSpec field) =>
     '$appleTitleLabel: ${swiftString(field.title!)}, '
     '$appleDescriptionLabel: ${swiftString(field.description!)}';
 
-String _caseDisplay(SiriEnumCase enumCase) {
+String _caseDisplay(SiriEnumCaseSpec enumCase) {
   final subtitle = enumCase.subtitle;
   if (subtitle == null) return swiftString(enumCase.title);
   return '$appleDisplayRepresentation('

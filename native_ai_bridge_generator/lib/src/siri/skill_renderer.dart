@@ -1,13 +1,15 @@
 import 'package:native_ai_bridge_generator/src/siri/manifest.dart';
+import 'package:native_ai_bridge_generator/src/siri/output_files.dart';
+import 'package:native_ai_bridge_generator/src/siri/validator.dart';
 
-Map<String, String> renderSkills(SiriManifest manifest) {
+Map<String, String> renderSkills(ValidatedSiriManifest validated) {
   return {
-    for (final skill in manifest.skills)
+    for (final skill in validated.manifest.skills)
       skillFilePath(skill.name): renderSkill(skill),
   };
 }
 
-String renderSkill(SiriSkill skill) {
+String renderSkill(SiriSkillSpec skill) {
   return [
     '---',
     'name: ${yamlScalar(skill.name)}',

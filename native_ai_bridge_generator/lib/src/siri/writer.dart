@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:native_ai_bridge_generator/src/siri/manifest.dart';
+import 'package:native_ai_bridge_generator/src/siri/output_files.dart';
 import 'package:path/path.dart' as p;
 
 class SiriOutputPlan {

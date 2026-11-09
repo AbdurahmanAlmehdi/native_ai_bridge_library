@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:native_ai_bridge_generator/src/siri/config.dart';
-import 'package:native_ai_bridge_generator/src/siri/manifest.dart';
+import 'package:native_ai_bridge_generator/src/siri/output_files.dart';
 import 'package:native_ai_bridge_generator/src/siri/reader.dart';
 import 'package:native_ai_bridge_generator/src/siri/skill_renderer.dart';
 import 'package:native_ai_bridge_generator/src/siri/swift_renderer.dart';
@@ -67,21 +67,23 @@ Future<int> run(
     return 2;
   }
 
-  final SiriManifest manifest;
+  final ValidatedSiriManifest manifest;
   try {
-    manifest = await readSiriManifest(config.input, root: appRoot);
+    manifest = validManifest(
+      await readSiriManifest(config.input, root: appRoot),
+    );
   } on SiriReadException catch (error) {
     error.messages.forEach(stderrSink.writeln);
     return 1;
-  }
-
-  final errors = validateManifest(manifest);
-  if (errors.isNotEmpty) {
-    errors.forEach(stderrSink.writeln);
-    stderrSink.writeln(
-      '${errors.length} error${errors.length == 1 ? '' : 's'} in '
-      '${config.input}. Nothing was written.',
-    );
+  } on SiriValidationException catch (error) {
+    final count = error.errors.length;
+    stderrSink
+      ..writeAll(error.errors, '\n')
+      ..writeln()
+      ..writeln(
+        '$count error${count == 1 ? '' : 's'} in ${config.input}. '
+        'Nothing was written.',
+      );
     return 1;
   }
 

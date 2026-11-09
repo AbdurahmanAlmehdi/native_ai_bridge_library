@@ -11,7 +11,8 @@ String invalidFixture(String name) => 'test/siri/fixtures/invalid/$name.dart';
 
 void expectGolden(String actual, String goldenPath) {
   final file = File(p.join('test/siri/goldens', goldenPath));
-  if (Platform.environment['UPDATE_GOLDENS'] == '1') {
+  if (Platform.environment['UPDATE_GOLDENS'] == '1' &&
+      (!file.existsSync() || file.readAsStringSync() != actual)) {
     file
       ..createSync(recursive: true)
       ..writeAsStringSync(actual);

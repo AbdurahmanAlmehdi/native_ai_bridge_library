@@ -35,9 +35,13 @@ class SiriConfig {
     if (!file.existsSync()) {
       throw const SiriConfigException('$siriConfigFileName not found.');
     }
+    return SiriConfig.parse(file.readAsStringSync());
+  }
+
+  factory SiriConfig.parse(String yaml) {
     final Object? document;
     try {
-      document = loadYaml(file.readAsStringSync());
+      document = loadYaml(yaml);
     } on YamlException catch (error) {
       throw SiriConfigException(
         '$siriConfigFileName is not valid YAML: ${error.message}',

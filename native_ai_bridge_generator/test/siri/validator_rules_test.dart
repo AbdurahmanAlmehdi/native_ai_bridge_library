@@ -1,31 +1,35 @@
 import 'package:native_ai_bridge_generator/src/siri/manifest.dart';
+import 'package:native_ai_bridge_generator/src/siri/output_files.dart';
 import 'package:native_ai_bridge_generator/src/siri/validator.dart';
 import 'package:test/test.dart';
 
 const _location = SourceLocation('lib/siri/siri_tools.dart', 3, 7);
 
-SiriSkill _skill({
+SiriSkillSpec _skill({
   String name = 'store',
   String description = 'Helps.',
   String body = 'Body.\n',
-}) => SiriSkill(
+}) => SiriSkillSpec(
   name: name,
   description: description,
   body: body,
   location: _location,
 );
 
-SiriField _field(SiriType type, {String? title = 'T', String? description}) =>
-    SiriField(
-      name: 'value',
-      type: type,
-      title: title,
-      description: description ?? 'D',
-      location: _location,
-    );
+SiriFieldSpec _field(
+  SiriType type, {
+  String? title = 'T',
+  String? description,
+}) => SiriFieldSpec(
+  name: 'value',
+  type: type,
+  title: title,
+  description: description ?? 'D',
+  location: _location,
+);
 
-SiriTool _tool(List<SiriField> parameters, {String name = 'Search'}) =>
-    SiriTool(
+SiriToolSpec _tool(List<SiriFieldSpec> parameters, {String name = 'Search'}) =>
+    SiriToolSpec(
       name: name,
       title: 'Search',
       description: 'Finds things.',
@@ -33,11 +37,11 @@ SiriTool _tool(List<SiriField> parameters, {String name = 'Search'}) =>
       location: _location,
     );
 
-SiriEntity _entity(
-  List<SiriField> properties, {
+SiriEntitySpec _entity(
+  List<SiriFieldSpec> properties, {
   String name = 'Filter',
   String title = 'Filter',
-}) => SiriEntity(
+}) => SiriEntitySpec(
   name: name,
   title: title,
   properties: properties,
@@ -123,18 +127,18 @@ void main() {
       final errors = validateManifest(
         const SiriManifest(
           enums: [
-            SiriEnum(
+            SiriEnumSpec(
               name: 'Sort',
               title: '',
               cases: [
-                SiriEnumCase(name: 'a', title: '', location: _location),
-                SiriEnumCase(
+                SiriEnumCaseSpec(name: 'a', title: '', location: _location),
+                SiriEnumCaseSpec(
                   name: 'b',
                   title: 'B',
                   subtitle: ' ',
                   location: _location,
                 ),
-                SiriEnumCase(name: 'c', title: 'C', location: _location),
+                SiriEnumCaseSpec(name: 'c', title: 'C', location: _location),
               ],
               location: _location,
             ),

@@ -1,4 +1,3 @@
-import 'package:native_ai_bridge_generator/src/siri/manifest.dart';
 import 'package:native_ai_bridge_generator/src/siri/reader.dart';
 import 'package:native_ai_bridge_generator/src/siri/skill_renderer.dart';
 import 'package:native_ai_bridge_generator/src/siri/swift_renderer.dart';
@@ -8,14 +7,12 @@ import 'package:test/test.dart';
 import 'helpers.dart';
 
 void main() {
-  late SiriManifest manifest;
+  late ValidatedSiriManifest manifest;
 
   setUpAll(() async {
-    manifest = await readSiriManifest(validFixture, root: '.');
-  });
-
-  test('the fixture library passes validation', () {
-    expect(validateManifest(manifest), isEmpty);
+    manifest = validManifest(
+      await readSiriManifest(validFixture, root: '.'),
+    );
   });
 
   test('renders the expected Swift files', () {

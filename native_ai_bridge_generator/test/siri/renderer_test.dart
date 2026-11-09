@@ -1,11 +1,13 @@
 import 'package:native_ai_bridge_generator/src/siri/manifest.dart';
+import 'package:native_ai_bridge_generator/src/siri/output_files.dart';
 import 'package:native_ai_bridge_generator/src/siri/skill_renderer.dart';
 import 'package:native_ai_bridge_generator/src/siri/swift_renderer.dart';
+import 'package:native_ai_bridge_generator/src/siri/validator.dart';
 import 'package:test/test.dart';
 
 const _location = SourceLocation('lib/siri/siri_tools.dart', 1, 1);
 
-SiriField _field(String name, SiriType type) => SiriField(
+SiriFieldSpec _field(String name, SiriType type) => SiriFieldSpec(
   name: name,
   type: type,
   title: 'Title',
@@ -13,11 +15,14 @@ SiriField _field(String name, SiriType type) => SiriField(
   location: _location,
 );
 
+Map<String, String> _swift(SiriManifest manifest, {String? condition}) =>
+    renderSwift(validManifest(manifest), compilationCondition: condition);
+
 void main() {
   group('renderSwift', () {
     const manifest = SiriManifest(
       tools: [
-        SiriTool(
+        SiriToolSpec(
           name: 'Ping',
           title: r'Say "hi" \ wave',
           description: 'Line one\nline two',
@@ -28,22 +33,22 @@ void main() {
     );
 
     test('starts every file with the generated header', () {
-      final ping = renderSwift(manifest)['Ping.g.swift']!;
+      final ping = _swift(manifest)['Ping.g.swift']!;
 
       expect(ping.split('\n').first, generatedSwiftHeader);
     });
 
     test('omits the #if block without a compilation condition', () {
-      final ping = renderSwift(manifest)['Ping.g.swift']!;
+      final ping = _swift(manifest)['Ping.g.swift']!;
 
       expect(ping, isNot(contains('#if')));
       expect(ping, isNot(contains('#endif')));
     });
 
     test('wraps the file in the compilation condition', () {
-      final ping = renderSwift(
+      final ping = _swift(
         manifest,
-        compilationCondition: 'SIRI_AI_TOOLS',
+        condition: 'SIRI_AI_TOOLS',
       )['Ping.g.swift']!;
 
       expect(ping, contains('\n#if SIRI_AI_TOOLS\nimport AppIntents\n'));
@@ -51,24 +56,24 @@ void main() {
     });
 
     test('escapes Swift string literals', () {
-      final ping = renderSwift(manifest)['Ping.g.swift']!;
+      final ping = _swift(manifest)['Ping.g.swift']!;
 
       expect(ping, contains(r'"Say \"hi\" \\ wave"'));
       expect(ping, contains(r'IntentDescription("Line one\nline two")'));
     });
 
     test('calls a parameterless handler with no arguments', () {
-      final ping = renderSwift(manifest)['Ping.g.swift']!;
+      final ping = _swift(manifest)['Ping.g.swift']!;
 
       expect(ping, contains('func perform() async throws -> String'));
       expect(ping, contains('try await handler.perform()'));
     });
 
     test('backticks Swift keywords used as parameter names', () {
-      final files = renderSwift(
+      final files = _swift(
         SiriManifest(
           tools: [
-            SiriTool(
+            SiriToolSpec(
               name: 'Move',
               title: 'Move',
               description: 'Moves it.',
@@ -87,10 +92,10 @@ void main() {
     });
 
     test('maps every supported type', () {
-      final files = renderSwift(
+      final files = _swift(
         SiriManifest(
           entities: [
-            SiriEntity(
+            SiriEntitySpec(
               name: 'Everything',
               title: 'Everything',
               properties: [
@@ -126,11 +131,11 @@ void main() {
   });
 
   group('renderSkill', () {
-    SiriSkill skill({
+    SiriSkillSpec skill({
       String name = 'store',
       String description = 'Helps.',
       String body = 'Body.\n',
-    }) => SiriSkill(
+    }) => SiriSkillSpec(
       name: name,
       description: description,
       body: body,
@@ -176,20 +181,6 @@ void main() {
       expect(
         normalizeSkillBody('\n\nFirst.\r\n\nSecond.  \n\n'),
         'First.\n\nSecond.\n',
-      );
-    });
-  });
-
-  group('splitIntoWords', () {
-    test('splits camel case into a sentence', () {
-      expect(splitIntoWords('priceLowToHigh'), 'Price low to high');
-      expect(splitIntoWords('HTTPServer'), 'HTTP server');
-    });
-
-    test('splits Pascal case into a title', () {
-      expect(
-        splitIntoWords('ProductSearch', titleCase: true),
-        'Product Search',
       );
     });
   });

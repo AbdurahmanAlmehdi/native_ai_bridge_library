@@ -5,6 +5,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:native_ai_bridge_generator/src/siri/manifest.dart';
+import 'package:native_ai_bridge_generator/src/siri/output_files.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_gen/source_gen.dart';
 
@@ -90,8 +91,8 @@ class _ManifestReader {
     );
   }
 
-  SiriTool _readTool(ClassElement element, ConstantReader annotation) {
-    return SiriTool(
+  SiriToolSpec _readTool(ClassElement element, ConstantReader annotation) {
+    return SiriToolSpec(
       name: element.displayName,
       title: annotation.read('title').stringValue,
       description: annotation.read('description').stringValue,
@@ -100,8 +101,8 @@ class _ManifestReader {
     );
   }
 
-  SiriEntity _readEntity(ClassElement element, ConstantReader annotation) {
-    return SiriEntity(
+  SiriEntitySpec _readEntity(ClassElement element, ConstantReader annotation) {
+    return SiriEntitySpec(
       name: element.displayName,
       title: _typeTitle(element, annotation),
       properties: _readFields(element),
@@ -109,8 +110,8 @@ class _ManifestReader {
     );
   }
 
-  SiriEnum _readEnum(EnumElement element, ConstantReader annotation) {
-    return SiriEnum(
+  SiriEnumSpec _readEnum(EnumElement element, ConstantReader annotation) {
+    return SiriEnumSpec(
       name: element.displayName,
       title: _typeTitle(element, annotation),
       cases: [
@@ -120,10 +121,10 @@ class _ManifestReader {
     );
   }
 
-  SiriEnumCase _readEnumCase(FieldElement constant) {
+  SiriEnumCaseSpec _readEnumCase(FieldElement constant) {
     final field = _fieldChecker.firstAnnotationOfExact(constant);
     final reader = field == null ? null : ConstantReader(field);
-    return SiriEnumCase(
+    return SiriEnumCaseSpec(
       name: constant.displayName,
       title:
           reader?.read('title').stringValue ??
@@ -133,8 +134,8 @@ class _ManifestReader {
     );
   }
 
-  SiriSkill _readSkill(Element element, ConstantReader annotation) {
-    return SiriSkill(
+  SiriSkillSpec _readSkill(Element element, ConstantReader annotation) {
+    return SiriSkillSpec(
       name: annotation.read('name').stringValue,
       description: annotation.read('description').stringValue,
       body: normalizeSkillBody(annotation.read('body').stringValue),
@@ -149,17 +150,17 @@ class _ManifestReader {
         : title.stringValue;
   }
 
-  List<SiriField> _readFields(ClassElement element) {
+  List<SiriFieldSpec> _readFields(ClassElement element) {
     return [
       for (final field in element.fields)
         if (!field.isStatic && field.isOriginDeclaration) _readField(field),
     ];
   }
 
-  SiriField _readField(FieldElement field) {
+  SiriFieldSpec _readField(FieldElement field) {
     final annotation = _fieldChecker.firstAnnotationOfExact(field);
     final reader = annotation == null ? null : ConstantReader(annotation);
-    return SiriField(
+    return SiriFieldSpec(
       name: field.displayName,
       type: _mapType(field.type),
       title: reader?.read('title').stringValue,
@@ -170,18 +171,16 @@ class _ManifestReader {
 
   SiriType _mapType(DartType type) {
     final isOptional = type.nullabilitySuffix == NullabilitySuffix.question;
-    if (type.isDartCoreString) {
-      return SiriScalarType(SiriScalar.string, isOptional: isOptional);
-    }
-    if (type.isDartCoreInt) {
-      return SiriScalarType(SiriScalar.integer, isOptional: isOptional);
-    }
-    if (type.isDartCoreDouble) {
-      return SiriScalarType(SiriScalar.decimal, isOptional: isOptional);
-    }
-    if (type.isDartCoreBool) {
-      return SiriScalarType(SiriScalar.boolean, isOptional: isOptional);
-    }
+    final scalar = type.isDartCoreString
+        ? SiriScalar.string
+        : type.isDartCoreInt
+        ? SiriScalar.integer
+        : type.isDartCoreDouble
+        ? SiriScalar.decimal
+        : type.isDartCoreBool
+        ? SiriScalar.boolean
+        : null;
+    if (scalar != null) return SiriScalarType(scalar, isOptional: isOptional);
     if (type is RecordType) {
       return SiriUnsupportedType(
         'a record ${type.getDisplayString()}',
@@ -259,3 +258,29 @@ String _formatDiagnostic(
 
 String _relative(String path, String root) =>
     p.posix.joinAll(p.split(p.relative(path, from: p.absolute(root))));
+
+String splitIntoWords(String identifier, {bool titleCase = false}) {
+  final words = identifier
+      .replaceAll(RegExp('^_+'), '')
+      .replaceAllMapped(
+        RegExp('([a-z0-9])([A-Z])|([A-Z])([A-Z][a-z])'),
+        (m) => m[1] != null ? '${m[1]} ${m[2]}' : '${m[3]} ${m[4]}',
+      )
+      .replaceAll('_', ' ')
+      .split(' ')
+      .where((word) => word.isNotEmpty)
+      .toList();
+  if (words.isEmpty) return identifier;
+  return [
+    _capitalize(words.first),
+    for (final word in words.skip(1))
+      if (titleCase)
+        _capitalize(word)
+      else if (word == word.toUpperCase())
+        word
+      else
+        word.toLowerCase(),
+  ].join(' ');
+}
+
+String _capitalize(String word) => word[0].toUpperCase() + word.substring(1);

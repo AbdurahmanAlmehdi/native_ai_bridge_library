@@ -32,8 +32,12 @@ struct SearchProducts: AppIntent {
     return .result(dialog: "\(reply)")
   }
 
-  enum HandlerError: Error {
+  enum HandlerError: Error, CustomLocalizedStringResourceConvertible {
     case notSet
+
+    var localizedStringResource: LocalizedStringResource {
+      "Search Products is not set up in this app yet."
+    }
   }
 }
 #endif

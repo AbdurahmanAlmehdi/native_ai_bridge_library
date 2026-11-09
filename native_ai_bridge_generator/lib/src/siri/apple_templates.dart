@@ -23,6 +23,8 @@ const appleDisplayRequirement = 'displayRepresentation';
 const appleTitleLabel = 'title';
 const appleDescriptionLabel = 'description';
 const appleSubtitleLabel = 'subtitle';
+const appleErrorMessageProtocol = 'CustomLocalizedStringResourceConvertible';
+const appleErrorMessageRequirement = 'localizedStringResource';
 
 String appleDialogReturn(String value) =>
     'return .result(dialog: "\\($value)")';

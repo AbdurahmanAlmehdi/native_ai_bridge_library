@@ -305,6 +305,8 @@ abstract final class WeatherForecastSkill {}
 | `@SiriGenerableEntity({title})` | a class or an enum | an `@AppEntity(.generable)` `TransientAppEntity`, or an `AppEnum` |
 | `@SiriSkill(name, description, body)` | any top-level declaration | `<name>/SKILL.md` |
 
+A generable entity's `displayRepresentation` is its type title for every instance, because the generator can't know which property identifies an instance. Siri confirmations therefore show the type, not the values.
+
 Supported types for parameters and properties: `String`, `int`, `double`, `bool`, `DateTime` (Swift `Date`), an enum or class marked `@SiriGenerableEntity` in the same library, and a `List` of these. Tool parameters may be nullable; entity properties may not, until a 27.3 compile shows Apple accepts optionals there.
 
 On newer Dart SDKs the analyzer reports `experimental_member_use` for these annotations. Silence it in `analysis_options.yaml` if you prefer:
@@ -393,7 +395,7 @@ override func application(
 }
 ```
 
-If no handler is set, the tool throws `HandlerError.notSet`. Handlers receive values only; the generated code never contains secrets. For any tool that changes state (adds to a cart, sends something, edits data), require authentication: add `static let authenticationPolicy = IntentAuthenticationPolicy.requiresAuthentication` in an extension of the generated tool struct, or write that tool by hand.
+Set each handler exactly once, at launch, before Siri can call the tool. `handler` is a `nonisolated(unsafe) static var`, so Swift does not check it for data races; assigning it later, or from several threads, is unsafe. If no handler is set, the tool throws `HandlerError.notSet`, and Siri says "<tool title> is not set up in this app yet." Handlers receive values only; the generated code never contains secrets. For any tool that changes state (adds to a cart, sends something, edits data), require authentication: add `static let authenticationPolicy = IntentAuthenticationPolicy.requiresAuthentication` in an extension of the generated tool struct, or write that tool by hand.
 
 ### Building only with the 27.3 SDK
 
