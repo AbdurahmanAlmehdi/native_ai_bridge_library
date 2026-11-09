@@ -1,0 +1,5 @@
+siri:
+  input: lib/siri/siri_tools.dart
+  swift_out: ios/Runner/Siri/Generated
+  skills_out: ios/Runner/Skills.skillsbundle/Skills
+  compilation_condition: SIRI_AI_TOOLS

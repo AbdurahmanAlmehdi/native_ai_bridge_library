@@ -55,10 +55,10 @@ void main() {
       expect(schema['propertyOrder'], ['term', 'price', 'tags']);
       final properties = schema['properties'] as Map;
       expect((properties['price'] as Map)['propertyOrder'], ['min', 'max']);
-      expect(
-        ((properties['tags'] as Map)['items'] as Map)['propertyOrder'],
-        ['b', 'a'],
-      );
+      expect(((properties['tags'] as Map)['items'] as Map)['propertyOrder'], [
+        'b',
+        'a',
+      ]);
     });
 
     test('keeps an explicit propertyOrder', () {
@@ -89,7 +89,9 @@ void main() {
           },
         },
         instructions: 'Extract filters',
-        images: [Uint8List.fromList([1, 2, 3])],
+        images: [
+          Uint8List.fromList([1, 2, 3]),
+        ],
         temperature: 0,
       );
 

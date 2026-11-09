@@ -22,9 +22,7 @@ void main() {
 
         manager.registerSession(
           sessionId: 'session_1',
-          toolHandlers: {
-            tool: (call) async => 'result',
-          },
+          toolHandlers: {tool: (call) async => 'result'},
         );
 
         expect(manager.activeSessionCount, 1);
@@ -73,42 +71,48 @@ void main() {
             sessionId: 'session_1',
             toolHandlers: {tool: (call) async => 'result'},
           ),
-          throwsA(isA<AppleFoundationException>().having(
-            (e) => e.code,
-            'code',
-            'SESSION_ALREADY_EXISTS',
-          )),
-        );
-      });
-
-      test('should throw error when registering tools with duplicate names',
-          () {
-        final tool1 = BaseTool(
-          name: 'test_tool',
-          description: 'Test 1',
-          arguments: [],
-        );
-        final tool2 = BaseTool(
-          name: 'test_tool',
-          description: 'Test 2',
-          arguments: [],
-        );
-
-        expect(
-          () => manager.registerSession(
-            sessionId: 'session_1',
-            toolHandlers: {
-              tool1: (call) async => 'result1',
-              tool2: (call) async => 'result2',
-            },
+          throwsA(
+            isA<AppleFoundationException>().having(
+              (e) => e.code,
+              'code',
+              'SESSION_ALREADY_EXISTS',
+            ),
           ),
-          throwsA(isA<AppleFoundationException>().having(
-            (e) => e.code,
-            'code',
-            'DUPLICATE_TOOL_NAMES',
-          )),
         );
       });
+
+      test(
+        'should throw error when registering tools with duplicate names',
+        () {
+          final tool1 = BaseTool(
+            name: 'test_tool',
+            description: 'Test 1',
+            arguments: [],
+          );
+          final tool2 = BaseTool(
+            name: 'test_tool',
+            description: 'Test 2',
+            arguments: [],
+          );
+
+          expect(
+            () => manager.registerSession(
+              sessionId: 'session_1',
+              toolHandlers: {
+                tool1: (call) async => 'result1',
+                tool2: (call) async => 'result2',
+              },
+            ),
+            throwsA(
+              isA<AppleFoundationException>().having(
+                (e) => e.code,
+                'code',
+                'DUPLICATE_TOOL_NAMES',
+              ),
+            ),
+          );
+        },
+      );
     });
 
     group('handleToolCall', () {
@@ -121,9 +125,7 @@ void main() {
 
         manager.registerSession(
           sessionId: 'session_1',
-          toolHandlers: {
-            tool: (call) async => 'Sunny, 22°C',
-          },
+          toolHandlers: {tool: (call) async => 'Sunny, 22°C'},
         );
 
         final call = ToolCall(
@@ -173,11 +175,13 @@ void main() {
 
         expect(
           () => manager.handleToolCall(call),
-          throwsA(isA<AppleFoundationException>().having(
-            (e) => e.code,
-            'code',
-            'SESSION_NOT_FOUND',
-          )),
+          throwsA(
+            isA<AppleFoundationException>().having(
+              (e) => e.code,
+              'code',
+              'SESSION_NOT_FOUND',
+            ),
+          ),
         );
       });
 
@@ -190,9 +194,7 @@ void main() {
 
         manager.registerSession(
           sessionId: 'session_1',
-          toolHandlers: {
-            tool: (call) async => 'result',
-          },
+          toolHandlers: {tool: (call) async => 'result'},
         );
 
         final call = ToolCall(
@@ -203,11 +205,13 @@ void main() {
 
         expect(
           () => manager.handleToolCall(call),
-          throwsA(isA<AppleFoundationException>().having(
-            (e) => e.code,
-            'code',
-            'TOOL_HANDLER_NOT_FOUND',
-          )),
+          throwsA(
+            isA<AppleFoundationException>().having(
+              (e) => e.code,
+              'code',
+              'TOOL_HANDLER_NOT_FOUND',
+            ),
+          ),
         );
       });
 
@@ -233,11 +237,13 @@ void main() {
 
         expect(
           () => manager.handleToolCall(call),
-          throwsA(isA<AppleFoundationException>().having(
-            (e) => e.code,
-            'code',
-            'SESSION_NOT_FOUND',
-          )),
+          throwsA(
+            isA<AppleFoundationException>().having(
+              (e) => e.code,
+              'code',
+              'SESSION_NOT_FOUND',
+            ),
+          ),
         );
       });
 
@@ -267,11 +273,13 @@ void main() {
 
         expect(
           () => manager.handleToolCall(call),
-          throwsA(isA<AppleFoundationException>().having(
-            (e) => e.code,
-            'code',
-            'TOOL_HANDLER_TIMEOUT',
-          )),
+          throwsA(
+            isA<AppleFoundationException>().having(
+              (e) => e.code,
+              'code',
+              'TOOL_HANDLER_TIMEOUT',
+            ),
+          ),
         );
       });
 
@@ -299,11 +307,13 @@ void main() {
 
         expect(
           () => manager.handleToolCall(call),
-          throwsA(isA<AppleFoundationException>().having(
-            (e) => e.code,
-            'code',
-            'TOOL_EXECUTION_FAILED',
-          )),
+          throwsA(
+            isA<AppleFoundationException>().having(
+              (e) => e.code,
+              'code',
+              'TOOL_EXECUTION_FAILED',
+            ),
+          ),
         );
       });
 
@@ -334,11 +344,13 @@ void main() {
 
         expect(
           () => manager.handleToolCall(call),
-          throwsA(isA<AppleFoundationException>().having(
-            (e) => e.code,
-            'code',
-            'CUSTOM_ERROR',
-          )),
+          throwsA(
+            isA<AppleFoundationException>().having(
+              (e) => e.code,
+              'code',
+              'CUSTOM_ERROR',
+            ),
+          ),
         );
       });
     });

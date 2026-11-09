@@ -10,10 +10,7 @@ class MockAppleFoundationFlutterPlatform extends AppleFoundationFlutterPlatform
   int _sessionCounter = 0;
 
   @override
-  Future<String> openSession(
-    String instructions, {
-    Map? toolHandlers,
-  }) async {
+  Future<String> openSession(String instructions, {Map? toolHandlers}) async {
     final sessionId = 'session_${_sessionCounter++}';
     _sessions[sessionId] = true;
     return sessionId;
@@ -125,17 +122,11 @@ class MockAppleFoundationFlutterPlatform extends AppleFoundationFlutterPlatform
     if (sessionId != null && !_sessions.containsKey(sessionId)) {
       throw Exception('Session not found');
     }
-    return List.generate(
-      maxSuggestions,
-      (i) => 'Suggestion ${i + 1}',
-    );
+    return List.generate(maxSuggestions, (i) => 'Suggestion ${i + 1}');
   }
 
   @override
-  Stream<String> generateTextStream(
-    String prompt, {
-    String? sessionId,
-  }) {
+  Stream<String> generateTextStream(String prompt, {String? sessionId}) {
     if (sessionId != null && !_sessions.containsKey(sessionId)) {
       throw Exception('Session not found');
     }
@@ -143,10 +134,7 @@ class MockAppleFoundationFlutterPlatform extends AppleFoundationFlutterPlatform
   }
 
   @override
-  Stream<String> getStructuredDataStream(
-    String prompt, {
-    String? sessionId,
-  }) {
+  Stream<String> getStructuredDataStream(String prompt, {String? sessionId}) {
     if (sessionId != null && !_sessions.containsKey(sessionId)) {
       throw Exception('Session not found');
     }
@@ -234,10 +222,7 @@ void main() {
 
         await session.close();
 
-        expect(
-          () => session.ask('What is AI?'),
-          throwsStateError,
-        );
+        expect(() => session.ask('What is AI?'), throwsStateError);
       });
     });
 
@@ -314,8 +299,10 @@ void main() {
           'You are a helpful assistant',
         );
 
-        final alternatives =
-            await session.generateAlternatives('Rewrite this', count: 5);
+        final alternatives = await session.generateAlternatives(
+          'Rewrite this',
+          count: 5,
+        );
 
         expect(alternatives.length, 5);
         await session.close();
@@ -471,8 +458,9 @@ void main() {
         );
 
         final chunks = <String>[];
-        await for (final chunk
-            in session.getStructuredDataStream('Create data')) {
+        await for (final chunk in session.getStructuredDataStream(
+          'Create data',
+        )) {
           chunks.add(chunk);
         }
 

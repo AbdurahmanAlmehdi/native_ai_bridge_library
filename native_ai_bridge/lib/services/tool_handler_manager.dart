@@ -22,7 +22,6 @@ class ToolHandlerManager {
       );
     }
 
-
     final toolNames = toolHandlers.keys.map((t) => t.name).toList();
     final uniqueNames = toolNames.toSet();
     if (toolNames.length != uniqueNames.length) {
@@ -141,7 +140,6 @@ class ToolHandlerManager {
     }
   }
 }
-
 
 class _SessionHandlers {
   final Map<String, ToolCallHandler> handlers;

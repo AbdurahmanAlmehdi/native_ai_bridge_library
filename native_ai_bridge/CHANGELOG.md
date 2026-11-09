@@ -1,3 +1,8 @@
+## 0.2.2
+
+* Add experimental Siri AI annotations: `@SiriTool`, `@SiriField`, `@SiriGenerableEntity` and `@SiriSkill`. They do nothing at runtime; `dart run native_ai_bridge_generator:siri` reads them and writes Swift App Intents and `SKILL.md` files. They may change while Apple's Siri AI Developer Preview changes.
+* README: new "Siri AI vs this package" section. Siri AI tools must be Swift App Intents in the app target; it lists the iOS 27.3, device, language and distribution limits of the preview.
+
 ## 0.2.1
 
 * Fix the homepage, repository and issue tracker links. They pointed at a repository that does not exist; the package lives in `native_ai_bridge_library`. No code changes.
